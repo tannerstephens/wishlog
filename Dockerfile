@@ -30,4 +30,4 @@ USER appuser
 COPY . .
 
 EXPOSE 80
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "-w", "4", "wishlog:create_app()"]
+ENTRYPOINT ["/home/appuser/docker-entrypoint.sh"]

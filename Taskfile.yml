@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  make-migrations:
+    cmds:
+      - pipenv run alembic revision --autogenerate
+  migrate:
+    cmds:
+      - pipenv run alembic upgrade head
+  dev:
+    cmds:
+      - pipenv run python dev.py

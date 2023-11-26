@@ -1,0 +1,4 @@
+html, body {
+    background-image: url('/static/img/backgroud.bmp');
+    background-repeat: repeat;
+}
