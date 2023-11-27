@@ -133,3 +133,15 @@ def claim(item_id: int):
     item.save()
 
     return api_response(True)
+
+
+@api.route("/items/<int:item_id>/unclaim", methods=["POST"])
+def unclaim(item_id: int):
+    if (item := Item.get_by_id(item_id)) is None:
+        return api_response(False, message="Item not found")
+
+    item.claimed = False
+
+    item.save()
+
+    return api_response(True)

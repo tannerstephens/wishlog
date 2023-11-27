@@ -25,7 +25,11 @@ const listEntryTemplate = Handlebars.compile(`
                 <a class="card-footer-item" id="delete-{{ id }}">Delete</a>
                 {{else}}
                     {{#if claimed}}
-                    <span class="card-footer-item">Claimed</span>
+                        {{#if justclaimed}}
+                        <a class="card-footer-item" id="unclaim-{{ id }}">Unclaim</a>
+                        {{else}}
+                        <span class="card-footer-item">Claimed</span>
+                        {{/if}}
                     {{else}}
                     <a class="card-footer-item" id="claim-{{ id }}">Mark As Purchased</a>
                     {{/if}}
@@ -45,13 +49,19 @@ window.onload = () => {
 
     let owner = false;
 
-    const appendItem = item => {
+    const appendItem = (item, replace) => {
         const div = document.createElement('div');
         div.innerHTML = listEntryTemplate({...item, owner}).trim();
 
         const element = div.firstChild;
 
-        list.appendChild(element);
+        console.log(item, replace)
+
+        if(replace instanceof HTMLDivElement){
+            replace.replaceWith(element);
+        } else {
+            list.appendChild(element);
+        }
 
         if(owner) {
             document.getElementById(`delete-${item.id}`).onclick = () => {
@@ -65,31 +75,40 @@ window.onload = () => {
                         }
                     })
             }
-        } else {
-            const claimButton = document.getElementById(`claim-${item.id}`);
+        } else if(item.justclaimed) {
+            document.getElementById(`unclaim-${item.id}`).onclick = () => {
+                fetch(`/api/items/${item.id}/unclaim`, {
+                    method: 'POST'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.success) {
+                            item.claimed = false;
+                            item.justclaimed = false;
 
-            if(claimButton) {
-                claimButton.onclick = () => {
-                    fetch(`/api/items/${item.id}/claim`, {
-                        method: 'POST'
+                            appendItem(item, element);
+                        } else {
+                            location.reload();
+                        }
                     })
-                        .then(response => response.json())
-                        .then(data => {
-                            if(data.success) {
-                                item.claimed = true;
-
-                                const newElement = document.createElement('div');
-                                newElement.innerHTML = listEntryTemplate({...item, owner}).trim();
-
-                                element.replaceWith(newElement.firstChild);
-                            } else {
-                                location.reload();
-                            }
-                        })
-                }
             }
+        } else if(!item.claimed) {
+            document.getElementById(`claim-${item.id}`).onclick = () => {
+                fetch(`/api/items/${item.id}/claim`, {
+                    method: 'POST'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.success) {
+                            item.claimed = true;
+                            item.justclaimed = true;
 
-
+                            appendItem(item, element);
+                        } else {
+                            location.reload();
+                        }
+                    })
+            }
         }
     }
 
