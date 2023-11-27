@@ -27,7 +27,7 @@ const listEntryTemplate = Handlebars.compile(`
                     {{#if claimed}}
                     <span class="card-footer-item">Claimed</span>
                     {{else}}
-                    <a class="card-footer-item" id="claim-{{ id }}">I Bought This</a>
+                    <a class="card-footer-item" id="claim-{{ id }}">Mark As Purchased</a>
                     {{/if}}
                 {{/if}}
             </footer>
@@ -66,20 +66,30 @@ window.onload = () => {
                     })
             }
         } else {
-            document.getElementById(`claim-${item.id}`).onclick = () => {
-                fetch(`/api/items/${item.id}/claim`, {
-                    method: 'POST'
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if(data.success) {
-                            element.remove();
-                            window.open(item.link, '_blank');
-                        } else {
-                            location.reload();
-                        }
+            const claimButton = document.getElementById(`claim-${item.id}`);
+
+            if(claimButton) {
+                claimButton.onclick = () => {
+                    fetch(`/api/items/${item.id}/claim`, {
+                        method: 'POST'
                     })
+                        .then(response => response.json())
+                        .then(data => {
+                            if(data.success) {
+                                item.claimed = true;
+
+                                const newElement = document.createElement('div');
+                                newElement.innerHTML = listEntryTemplate({...item, owner}).trim();
+
+                                element.replaceWith(newElement.firstChild);
+                            } else {
+                                location.reload();
+                            }
+                        })
+                }
             }
+
+
         }
     }
 
