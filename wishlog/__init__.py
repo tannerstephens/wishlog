@@ -1,5 +1,6 @@
 from flask import Flask
 
+from .before_request import register_before_request
 from .database import db
 from .views import register_blueprints
 
@@ -12,5 +13,7 @@ def create_app(config="wishlog.config.Config") -> Flask:
 
     with app.app_context():
         register_blueprints(app)
+
+    register_before_request(app)
 
     return app

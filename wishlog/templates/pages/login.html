@@ -1,0 +1,41 @@
+{% extends "pages/_base.html" %}
+
+{% block header %}
+    <script src="/static/js/login.js"></script>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="columns is-centered">
+            <div class="column is-two-thirds-desktop">
+                <div class="box">
+                    <h1 class="title">Login</h1>
+
+                    <form name="login">
+                        <div class="field">
+                            <label class="label">Username</label>
+                            <div class="control">
+                                <input class="input" type="text" placeholder="joe_schmoe" name="username">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Password</label>
+                            <div class="control">
+                                <input class="input" type="password" placeholder="password" name="password">
+                            </div>
+                        </div>
+
+                        <div class="field is-grouped">
+                            <div class="control">
+                                <button class="button is-primary" type="submit">Submit</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

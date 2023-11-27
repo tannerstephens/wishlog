@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy import Column, Integer
 
 from ..database import db
@@ -26,3 +28,13 @@ class BaseModel(db.Base):
     @classmethod
     def all(cls):
         return db.session.query(cls).all()
+
+    def _to_dict(self) -> dict[str, Any]:
+        return {}
+
+    def to_dict(self) -> dict[str, Any]:
+        d = self._to_dict()
+
+        d.update({"id": self.id})
+
+        return d

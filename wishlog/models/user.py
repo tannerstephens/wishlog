@@ -1,5 +1,6 @@
 from hashlib import pbkdf2_hmac
 from os import urandom
+from typing import Any
 
 from sqlalchemy import Column, Index, String, func
 
@@ -36,6 +37,9 @@ class User(BaseModel):
             .filter(func.lower(cls.username) == username.lower())
             .first()
         )
+
+    def _to_dict(self) -> dict[str, Any]:
+        return {"username": self.username}
 
 
 user_username_index = Index("user_username_idx", func.lower(User.username), unique=True)
