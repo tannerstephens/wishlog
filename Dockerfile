@@ -23,7 +23,9 @@ ENV FLASK_APP=wishlog:create_app
 
 RUN useradd --create-home appuser
 RUN mkdir /var/database
+RUN mkdir /var/images
 RUN chown -R appuser:appuser /var/database
+RUN chown -R appuser:appuser /var/images
 WORKDIR /home/appuser
 USER appuser
 
