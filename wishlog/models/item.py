@@ -2,6 +2,7 @@ from typing import Any
 
 from sqlalchemy import Boolean, Column, String
 
+from ..database import db
 from ._base_model import BaseModel
 
 
@@ -19,6 +20,10 @@ class Item(BaseModel):
         self.cost = cost
         self.link = link
         self.image_file_path = image_file_path
+
+    @classmethod
+    def unclaimed(cls):
+        return db.session.query(cls).filter(cls.claimed == False).all()
 
     def _to_dict(self) -> dict[str, Any]:
         return {

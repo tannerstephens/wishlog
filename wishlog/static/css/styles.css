@@ -23,3 +23,7 @@ html::-webkit-scrollbar {
 .card-image {
     background-color: #eee;
 }
+
+.is-claimed {
+    background-color: #faa;
+}

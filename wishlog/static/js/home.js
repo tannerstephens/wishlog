@@ -1,6 +1,6 @@
 const listEntryTemplate = Handlebars.compile(`
     <div class="column is-one-third-desktop">
-        <div class="card">
+        <div class="card {{#if claimed}}is-claimed{{/if}}">
             <div class="card-image">
                 <figure class="image is-4by3">
                     <img src="{{ image }}">
@@ -8,7 +8,13 @@ const listEntryTemplate = Handlebars.compile(`
             </div>
             <div class="card-content">
                 <div class="content">
-                    <b>{{ title }}</b> - \${{ cost }}
+                    {{#if claimed}}
+                    <s>
+                    {{/if}}
+                    <b>{{ title }}</b>{{#if cost}} - \${{ cost }}{{/if}}
+                    {{#if claimed}}
+                    </s>&nbsp;<b>Claimed</b>
+                    {{/if}}
                     <br>
                     <br>
                     <a class="button is-warning" href="{{ link }}" target="_blank">Browse Item</a>
@@ -18,7 +24,11 @@ const listEntryTemplate = Handlebars.compile(`
                 {{#if owner}}
                 <a class="card-footer-item" id="delete-{{ id }}">Delete</a>
                 {{else}}
-                <a class="card-footer-item" id="claim-{{ id }}">Claim</a>
+                    {{#if claimed}}
+                    <span class="card-footer-item">Claimed</span>
+                    {{else}}
+                    <a class="card-footer-item" id="claim-{{ id }}">I Bought This</a>
+                    {{/if}}
                 {{/if}}
             </footer>
         </div>
@@ -64,6 +74,7 @@ window.onload = () => {
                     .then(data => {
                         if(data.success) {
                             element.remove();
+                            window.open(item.link, '_blank');
                         } else {
                             location.reload();
                         }
