@@ -1,11 +1,73 @@
 {% extends "pages/_base.html" %}
 
+{% block header %}
+    <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
+    <script src="/static/js/home.js"></script>
+{% endblock %}
+
 {% block content %}
+<section class="hero is-large">
+    <div class="hero-body has-text-centered">
+        <p class="title has-text-white-bis is-1">
+            The List
+        </p>
+    </div>
+</section>
+
 <section class="section">
     <div class="container">
-        <h1 class="title">
-            WishLog
-        </h1>
+        {% include 'fragments/flash.html' %}
+        <br>
+        <div class="columns is-multiline" id="list">
+            <div class="column is-full is-hidden" id="new">
+                <div class="box">
+                    <form name="newItemForm">
+                        <div class="field">
+                            <label class="label required">Title</label>
+                            <div class="control">
+                                <input class="input" type="text" placeholder="Bag of Cash" name="title">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Cost</label>
+                            <div class="control">
+                                <input class="input" type="text" placeholder="15.23" name="cost">
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="label">Link</label>
+                            <div class="control">
+                                <input class="input" type="text" placeholder="https://amazon.com" name="link">
+                            </div>
+                        </div>
+
+                        <div class="file has-name">
+                            <label class="file-label">
+                                <input class="file-input" type="file" name="image" accept="image/*">
+                                <span class="file-cta">
+                                    <span class="file-icon">
+                                        <i class="fas fa-upload"></i>
+                                    </span>
+                                    <span class="file-label">
+                                        Upload an image...
+                                    </span>
+                                </span>
+                                <span class="file-name" id="fileName"></span>
+                            </label>
+                        </div>
+                        <br>
+
+                        <div class="field">
+                            <div class="control">
+                                <button class="button is-primary" type="submit" id="submit" disabled>Submit</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 {% endblock %}

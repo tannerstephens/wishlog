@@ -1,4 +1,25 @@
 html, body {
     background-image: url('/static/img/backgroud.bmp');
     background-repeat: repeat;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+html::-webkit-scrollbar {
+    display: none;
+}
+
+.hero {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/static/img/splash.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+.required::after {
+    content: "*";
+    color: red;
+}
+
+.card-image {
+    background-color: #eee;
 }

@@ -9,9 +9,8 @@ def create_app(config="wishlog.config.Config") -> Flask:
     app = Flask(__name__)
     app.config.from_object(config)
 
-    db.init_app(app)
-
     with app.app_context():
+        db.init_app(app)
         register_blueprints(app)
 
     register_before_request(app)

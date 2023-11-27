@@ -26,3 +26,4 @@ if not os.environ.get("SECRET_KEY"):
 class Config(object):
     SECRET_KEY = os.environ.get("SECRET_KEY") or key
     SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URI") or "sqlite:///wishlog.db"
+    IMAGE_STORAGE_DIRECTORY = os.environ.get("IMAGE_STORAGE_DIRECTORY") or "/tmp"

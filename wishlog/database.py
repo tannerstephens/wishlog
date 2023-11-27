@@ -20,16 +20,9 @@ class Database:
 
         self.Base.query = self.session.query_property()
 
-        self.init_db()
-
         @app.teardown_appcontext
         def shutdown_session(exception=None):
             self.session.remove()
-
-    def init_db(self):
-        import wishlog.models
-
-        self.Base.metadata.create_all(bind=self.engine)
 
 
 db = Database()
