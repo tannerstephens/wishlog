@@ -47,6 +47,10 @@ window.onload = () => {
     const submitButton = document.getElementById('submit');
     const fileName = document.getElementById('fileName');
 
+    const claimedSwitch = document.getElementById('claimedSwitch');
+
+    const temp = document.getElementById('temp');
+
     let owner = false;
 
     const appendItem = (item, replace) => {
@@ -54,8 +58,6 @@ window.onload = () => {
         div.innerHTML = listEntryTemplate({...item, owner}).trim();
 
         const element = div.firstChild;
-
-        console.log(item, replace)
 
         if(replace instanceof HTMLDivElement){
             replace.replaceWith(element);
@@ -112,6 +114,20 @@ window.onload = () => {
         }
     }
 
+    const loadAllItems = claimed => {
+        temp.innerHTML = list.innerHTML;
+        list.innerHTML = '';
+
+        const showClaimed = claimed ? 'show' : 'hide';
+
+        fetch(`/api/items?claimed=${showClaimed}`)
+            .then(response => response.json())
+            .then(data => {
+                data.items.forEach(appendItem);
+                temp.innerHTML = '';
+            });
+    }
+
     fetch('/api/session')
         .then(response => response.json())
         .then(data => {
@@ -120,11 +136,7 @@ window.onload = () => {
                 owner = true;
             }
 
-            fetch('/api/items')
-                .then(response => response.json())
-                .then(data => {
-                    data.items.forEach(appendItem);
-                });
+            loadAllItems(claimedSwitch.checked);
         });
 
 
@@ -182,4 +194,9 @@ window.onload = () => {
 
     newItemForm.oninput = setState;
     setState();
+
+    claimedSwitch.onchange = () => {
+        console.log('hmm')
+        loadAllItems(claimedSwitch.checked);
+    }
 }

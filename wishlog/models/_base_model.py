@@ -22,12 +22,29 @@ class BaseModel(db.Base):
             db.session.commit()
 
     @classmethod
+    @property
+    def query(cls):
+        return db.session.query(cls)
+
+    @classmethod
     def get_by_id(cls, id: int):
-        return db.session.query(cls).filter(cls.id == id).first()
+        return cls.query.filter(cls.id == id).first()
 
     @classmethod
     def all(cls):
-        return db.session.query(cls).all()
+        return cls.query.all()
+
+    @classmethod
+    def filter(cls, *args):
+        return cls.query.filter(*args)
+
+    @classmethod
+    def filter_by(cls, **kwargs):
+        return cls.query.filter_by(**kwargs)
+
+    @classmethod
+    def order_by(cls, first, *args):
+        return cls.query.order_by(first, *args)
 
     def _to_dict(self) -> dict[str, Any]:
         return {}

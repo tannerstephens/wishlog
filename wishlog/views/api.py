@@ -1,3 +1,4 @@
+from datetime import datetime
 from re import match
 
 from flask import Blueprint, current_app, flash, jsonify, request, session
@@ -66,7 +67,12 @@ def logout():
 
 @api.route("/items", methods=["GET"])
 def all_items():
-    items = Item.all()
+    items_filter = Item.order_by(Item.title)
+
+    if request.args.get("claimed", "hide") == "show":
+        items = items_filter.all()
+    else:
+        items = items_filter.filter_by(claimed=False).all()
 
     return api_response(True, items=[item.to_dict() for item in items])
 
@@ -129,6 +135,7 @@ def claim(item_id: int):
         return api_response(False, message="Item already claimed")
 
     item.claimed = True
+    item.claimed_date = datetime.now()
 
     item.save()
 
@@ -141,6 +148,7 @@ def unclaim(item_id: int):
         return api_response(False, message="Item not found")
 
     item.claimed = False
+    item.claimed_date = None
 
     item.save()
 
