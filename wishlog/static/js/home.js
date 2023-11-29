@@ -127,6 +127,7 @@ window.onload = () => {
         fetch(`/api/items?order_by=${order_by_value[0]}${desc}${showClaimed}`)
             .then(response => response.json())
             .then(data => {
+                data.items.reverse();
                 data.items.forEach(appendItem);
                 temp.innerHTML = '';
             });
