@@ -64,7 +64,7 @@ window.onload = () => {
         if(replace instanceof HTMLDivElement){
             replace.replaceWith(element);
         } else {
-            list.appendChild(element);
+            list.prepend(element);
         }
 
         if(owner) {
