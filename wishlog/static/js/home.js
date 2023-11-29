@@ -51,6 +51,8 @@ window.onload = () => {
 
     const temp = document.getElementById('temp');
 
+    const orderBy = document.getElementById('orderBy');
+
     let owner = false;
 
     const appendItem = (item, replace) => {
@@ -114,13 +116,15 @@ window.onload = () => {
         }
     }
 
-    const loadAllItems = claimed => {
+    const loadAllItems = () => {
         temp.innerHTML = list.innerHTML;
         list.innerHTML = '';
 
-        const showClaimed = claimed ? 'show' : 'hide';
+        const showClaimed = claimedSwitch.checked ? '&show_claimed' : '';
+        const order_by_value = orderBy.value.split('-')
+        const desc = order_by_value[1] == 'desc' ? '&desc' : ''
 
-        fetch(`/api/items?claimed=${showClaimed}`)
+        fetch(`/api/items?order_by=${order_by_value[0]}${desc}${showClaimed}`)
             .then(response => response.json())
             .then(data => {
                 data.items.forEach(appendItem);
@@ -196,7 +200,10 @@ window.onload = () => {
     setState();
 
     claimedSwitch.onchange = () => {
-        console.log('hmm')
-        loadAllItems(claimedSwitch.checked);
+        loadAllItems();
+    }
+
+    orderBy.onchange = () => {
+        loadAllItems()
     }
 }

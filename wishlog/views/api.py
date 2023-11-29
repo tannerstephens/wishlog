@@ -67,9 +67,10 @@ def logout():
 
 @api.route("/items", methods=["GET"])
 def all_items():
-    items_filter = Item.order_by(Item.title)
+    desc = "desc" in request.args
+    items_filter = Item.order_by(request.args.get("order_by"), desc)
 
-    if request.args.get("claimed", "hide") == "show":
+    if "show_claimed" in request.args:
         items = items_filter.all()
     else:
         items = items_filter.filter_by(claimed=False).all()

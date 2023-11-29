@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column, Integer, desc
 
 from ..database import db
 
@@ -9,6 +9,7 @@ class BaseModel(db.Base):
     __abstract__ = True
 
     id = Column(Integer, primary_key=True)
+    orderable = ["id"]
 
     def save(self, commit=True):
         db.session.add(self)
@@ -43,8 +44,15 @@ class BaseModel(db.Base):
         return cls.query.filter_by(**kwargs)
 
     @classmethod
-    def order_by(cls, first, *args):
-        return cls.query.order_by(first, *args)
+    def order_by(cls, value: str, descending=False):
+        if value in cls.orderable:
+            order_by_value = getattr(cls, value)
+
+            if descending:
+                order_by_value = desc(order_by_value)
+
+            return cls.query.order_by(order_by_value)
+        return cls.query
 
     def _to_dict(self) -> dict[str, Any]:
         return {}

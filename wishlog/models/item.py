@@ -17,6 +17,8 @@ class Item(BaseModel):
     claimed = Column(Boolean, default=False)
     claimed_date = Column(DateTime, nullable=True, default=None)
 
+    orderable = ["id", "title", "cost"]
+
     def __init__(self, title, cost, link=None, image_file_path=None):
         self.title = title
         self.cost = cost
