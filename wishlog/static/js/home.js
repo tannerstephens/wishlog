@@ -3,7 +3,7 @@ const listEntryTemplate = Handlebars.compile(`
         <div class="card {{#if claimed}}is-claimed{{/if}}">
             <div class="card-image">
                 <figure class="image is-4by3">
-                    <img src="{{ image }}">
+                    <img src="{{ image }}" loading="lazy">
                 </figure>
             </div>
             <div class="card-content">
