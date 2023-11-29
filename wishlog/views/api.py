@@ -87,7 +87,7 @@ def create_item():
     if title is None:
         return api_response(False, "`title` is required")
 
-    cost = request.json.get("cost")
+    cost = float(request.json["cost"])
     link = request.json.get("link")
 
     if link and match(r"^https?:\/\/", link) is None:
@@ -99,7 +99,9 @@ def create_item():
     if base64_image:
         image_file_path = image_processor.process_image(base64_image)
 
-    new_item = Item(title, cost, link, image_file_path).save()
+    new_item = Item(
+        title=title, cost=cost, link=link, image_file_path=image_file_path
+    ).save()
 
     return api_response(True, item=new_item.to_dict())
 

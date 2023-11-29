@@ -185,7 +185,7 @@ window.onload = () => {
     }
 
     const setState = () => {
-        submitButton.disabled = (newItemForm.title.value.length == 0);
+        submitButton.disabled = (newItemForm.title.value.length == 0) || (newItemForm.cost.value.length == 0);
 
         if(newItemForm.image.value) {
             fileName.innerText = newItemForm.image.files[0].name;

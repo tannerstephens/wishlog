@@ -1,6 +1,6 @@
 from typing import Any
 
-from sqlalchemy import Boolean, Column, DateTime, String
+from sqlalchemy import Boolean, Column, DateTime, Float, String
 
 from ..database import db
 from ._base_model import BaseModel
@@ -10,13 +10,14 @@ class Item(BaseModel):
     __tablename__ = "items"
 
     title = Column(String, nullable=False)
-    cost = Column(String, nullable=True)
+    old_cost = Column(String, nullable=True)
+    cost = Column(Float, nullable=False)
     link = Column(String, nullable=True)
     image_file_path = Column(String, nullable=True)
     claimed = Column(Boolean, default=False)
     claimed_date = Column(DateTime, nullable=True, default=None)
 
-    def __init__(self, title, cost=None, link=None, image_file_path=None):
+    def __init__(self, title, cost, link=None, image_file_path=None):
         self.title = title
         self.cost = cost
         self.link = link
