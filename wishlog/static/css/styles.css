@@ -27,3 +27,7 @@ html::-webkit-scrollbar {
 .is-claimed {
     background-color: #faa;
 }
+
+.card {
+    height: 100%;
+}

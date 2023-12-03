@@ -2,9 +2,11 @@ const listEntryTemplate = Handlebars.compile(`
     <div class="column is-one-third-desktop">
         <div class="card {{#if claimed}}is-claimed{{/if}}">
             <div class="card-image">
+                {{#if link}}<a href="{{ link }}" target="_blank">{{/if}}
                 <figure class="image is-4by3">
                     <img src="{{ image }}" loading="lazy">
                 </figure>
+                {{#if link}}</a>{{/if}}
             </div>
             <div class="card-content">
                 <div class="content">
@@ -17,7 +19,7 @@ const listEntryTemplate = Handlebars.compile(`
                     {{/if}}
                     <br>
                     <br>
-                    <a class="button is-warning" href="{{ link }}" target="_blank">Browse Item</a>
+                        <a class="button is-warning" href="{{ link }}" target="_blank">Browse Item</a>
                 </div>
             </div>
             <footer class="card-footer">
