@@ -10,11 +10,11 @@ const listEntryTemplate = Handlebars.compile(`
             </div>
             <div class="card-content">
                 <div class="content">
-                    {{#if claimed}}
-                    <s>
-                    {{/if}}
-                    <h1 class="title is-3">{{ title }}</h1>
+                    <h1 class="title is-3">
+                        {{ title }}{{#if claimed}} - Claimed{{/if}}
+                    </h1>
                     <h2 class="subtitle is-5">{{ price cost }}</h2>
+
                     {{#if owner}}
                     <h3>Edit This Item</h3>
                     <div class="field">
@@ -39,33 +39,36 @@ const listEntryTemplate = Handlebars.compile(`
                         </div>
                     </div>
                     {{/if}}
-                    {{#if claimed}}
-                    </s>&nbsp;<b>Claimed</b>
-                    {{/if}}
 
 
-                    {{#if link}}
-                    <br>
-                    <br>
-                    <a class="button is-warning" href="{{ link }}" target="_blank">Browse Item</a>
-                    {{/if}}
+                    <div class="field is-grouped">
+                        {{#if link}}
+                        <p class="control">
+                            <a class="button is-warning" href="{{ link }}" target="_blank">Browse Item</a>
+                        </p>
+                        {{/if}}
+
+                        {{#if owner}}
+                            <p class="control">
+                                <a class="button is-danger" href="#" id="delete-{{ id }}">Delete</a>
+                            </p>
+                        {{else}}
+                            {{#if claimed}}
+                                {{#if justclaimed}}
+                                <p class="control">
+                                    <a class="button is-danger" href="#" id="unclaim-{{ id }}">Unclaim</a>
+                                </p>
+                                {{/if}}
+                            {{else}}
+                            <p class="control">
+                                <a class="button is-info" href="#" id="claim-{{ id }}">Mark As Purchased</a>
+                            </p>
+                            {{/if}}
+                        {{/if}}
+                    </div>
+
                 </div>
             </div>
-            <footer class="card-footer">
-                {{#if owner}}
-                <a class="card-footer-item" id="delete-{{ id }}">Delete</a>
-                {{else}}
-                    {{#if claimed}}
-                        {{#if justclaimed}}
-                        <a class="card-footer-item" id="unclaim-{{ id }}">Unclaim</a>
-                        {{else}}
-                        <span class="card-footer-item">Claimed</span>
-                        {{/if}}
-                    {{else}}
-                    <a class="card-footer-item" id="claim-{{ id }}">Mark As Purchased</a>
-                    {{/if}}
-                {{/if}}
-            </footer>
         </div>
     </div>
 `);
