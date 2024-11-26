@@ -50,18 +50,18 @@ const listEntryTemplate = Handlebars.compile(`
 
                         {{#if owner}}
                             <p class="control">
-                                <a class="button is-danger" href="#" id="delete-{{ id }}">Delete</a>
+                                <a class="button is-danger" id="delete-{{ id }}">Delete</a>
                             </p>
                         {{else}}
                             {{#if claimed}}
                                 {{#if justclaimed}}
                                 <p class="control">
-                                    <a class="button is-danger" href="#" id="unclaim-{{ id }}">Unclaim</a>
+                                    <a class="button is-danger" id="unclaim-{{ id }}">Unclaim</a>
                                 </p>
                                 {{/if}}
                             {{else}}
                             <p class="control">
-                                <a class="button is-info" href="#" id="claim-{{ id }}">Mark As Purchased</a>
+                                <a class="button is-info" id="claim-{{ id }}">Mark As Purchased</a>
                             </p>
                             {{/if}}
                         {{/if}}
