@@ -23,25 +23,24 @@ class BaseModel(db.Base):
             db.session.commit()
 
     @classmethod
-    @property
     def query(cls):
         return db.session.query(cls)
 
     @classmethod
     def get_by_id(cls, id: int):
-        return cls.query.filter(cls.id == id).first()
+        return cls.query().filter(cls.id == id).first()
 
     @classmethod
     def all(cls):
-        return cls.query.all()
+        return cls.query().all()
 
     @classmethod
     def filter(cls, *args):
-        return cls.query.filter(*args)
+        return cls.query().filter(*args)
 
     @classmethod
     def filter_by(cls, **kwargs):
-        return cls.query.filter_by(**kwargs)
+        return cls.query().filter_by(**kwargs)
 
     @classmethod
     def order_by(cls, value: str, descending=False):
@@ -51,8 +50,8 @@ class BaseModel(db.Base):
             if descending:
                 order_by_value = desc(order_by_value)
 
-            return cls.query.order_by(order_by_value)
-        return cls.query
+            return cls.query().order_by(order_by_value)
+        return cls.query()
 
     def _to_dict(self) -> dict[str, Any]:
         return {}

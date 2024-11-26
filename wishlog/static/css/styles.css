@@ -1,9 +1,12 @@
-html, body {
+html,
+body {
     background-image: url('/static/img/backgroud.bmp');
     background-repeat: repeat;
     background-attachment: fixed;
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
 }
 
 html::-webkit-scrollbar {

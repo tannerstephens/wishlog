@@ -13,13 +13,42 @@ const listEntryTemplate = Handlebars.compile(`
                     {{#if claimed}}
                     <s>
                     {{/if}}
-                    <b>{{ title }}</b>{{#if cost}} - \${{ cost }}{{/if}}
+                    <h1 class="title is-3">{{ title }}</h1>
+                    <h2 class="subtitle is-5">{{ price cost }}</h2>
+                    {{#if owner}}
+                    <h3>Edit This Item</h3>
+                    <div class="field">
+                        <label class="label">Cost</label>
+                        <div class="field-body">
+                            <div class="field">
+                                <div class="control">
+                                    <input class="input" type="number" step="0.01" min="0" value="{{ cost }}" id="cost-{{ id }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label class="label">Desire</label>
+                        <div class="field-body">
+                            <div class="field">
+                                <div class="control">
+                                    <input class="input" type="number" step="1" value="{{ desire }}" id="desire-{{ id }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{/if}}
                     {{#if claimed}}
                     </s>&nbsp;<b>Claimed</b>
                     {{/if}}
+
+
+                    {{#if link}}
                     <br>
                     <br>
-                        <a class="button is-warning" href="{{ link }}" target="_blank">Browse Item</a>
+                    <a class="button is-warning" href="{{ link }}" target="_blank">Browse Item</a>
+                    {{/if}}
                 </div>
             </div>
             <footer class="card-footer">
@@ -40,6 +69,10 @@ const listEntryTemplate = Handlebars.compile(`
         </div>
     </div>
 `);
+
+Handlebars.registerHelper('price', function(cost) {
+    return `\$${cost.toFixed(2)}`;
+  });
 
 window.onload = () => {
     const newFormParent = document.getElementById('new');
@@ -81,6 +114,22 @@ window.onload = () => {
                         }
                     })
             }
+
+            const desireInput = document.getElementById(`desire-${item.id}`)
+            const costInput = document.getElementById(`cost-${item.id}`)
+
+            const patchItem = () => {
+                fetch(`/api/items/${item.id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({desire: desireInput.value, cost: costInput.value})
+                })
+            }
+
+            desireInput.onchange = patchItem
+            costInput.onchange = patchItem
         } else if(item.justclaimed) {
             document.getElementById(`unclaim-${item.id}`).onclick = () => {
                 fetch(`/api/items/${item.id}/unclaim`, {
@@ -162,15 +211,15 @@ window.onload = () => {
     newItemForm.onsubmit = e => {
         e.preventDefault();
 
-        if(newItemForm.title.value.length == 0) {
+        if(submitButton.disabled) {
             return
         }
 
-        const body = {title: newItemForm.title.value};
-
-        if(newItemForm.cost.value) {
-            body.cost = newItemForm.cost.value;
-        }
+        const body = {
+            title: newItemForm.title.value,
+            desire: newItemForm.desire.value,
+            cost: newItemForm.cost.value
+        };
 
         if(newItemForm.link.value) {
             body.link = newItemForm.link.value;
@@ -192,7 +241,7 @@ window.onload = () => {
     }
 
     const setState = () => {
-        submitButton.disabled = (newItemForm.title.value.length == 0) || (newItemForm.cost.value.length == 0);
+        submitButton.disabled = (newItemForm.title.value.length == 0) || (newItemForm.cost.value.length == 0) || (newItemForm.desire.value.length == 0);
 
         if(newItemForm.image.value) {
             fileName.innerText = newItemForm.image.files[0].name;

@@ -89,6 +89,7 @@ def create_item():
         return api_response(False, "`title` is required")
 
     cost = float(request.json["cost"])
+    desire = int(request.json['desire'])
     link = request.json.get("link")
 
     if link and match(r"^https?:\/\/", link) is None:
@@ -101,7 +102,7 @@ def create_item():
         image_file_path = image_processor.process_image(base64_image)
 
     new_item = Item(
-        title=title, cost=cost, link=link, image_file_path=image_file_path
+        title=title, cost=cost, link=link, image_file_path=image_file_path, desire=desire
     ).save()
 
     return api_response(True, item=new_item.to_dict())
@@ -114,6 +115,21 @@ def get_item(item_id: int):
 
     return api_response(True, item=item.to_dict())
 
+@api.route("/items/<int:item_id>", methods=["PATCH"])
+def patch_item(item_id: int):
+    if (item := Item.get_by_id(item_id)) is None:
+        return api_response(False, message="Item not found")
+
+    new_desire = request.json.get("desire")
+    new_cost = request.json.get('cost')
+
+    if (new_desire or new_cost):
+        item.desire = int(new_desire) if new_desire else item.desire
+        item.cost = float(new_cost) if new_cost else item.cost
+
+        item.save()
+
+    return api_response(True, item=item.to_dict())
 
 @api.route("/items/<int:item_id>", methods=["DELETE"])
 def delete_item(item_id: int):

@@ -1,98 +1,102 @@
 {% extends "pages/_base.html" %}
-
 {% block header %}
     <script src="https://cdn.jsdelivr.net/npm/handlebars@latest/dist/handlebars.js"></script>
     <script src="/static/js/home.js"></script>
 {% endblock %}
-
 {% block content %}
-<section class="hero is-large">
-    <div class="hero-body has-text-centered">
-        <p class="title has-text-white-bis is-1">
-            The List
-        </p>
-    </div>
-</section>
-
-<section class="section">
-    <div class="container">
-        {% include 'fragments/flash.html' %}
-        <br>
-        <div class="box is-hidden" id="new">
-            <form name="newItemForm">
-                <div class="field">
-                    <label class="label required">Title</label>
-                    <div class="control">
-                        <input class="input" type="text" placeholder="Bag of Cash" name="title">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label class="label required">Cost</label>
-                    <div class="control">
-                        <input class="input" type="number" step="0.01" min="0" placeholder="15.23" name="cost">
-                    </div>
-                </div>
-
-                <div class="field">
-                    <label class="label">Link</label>
-                    <div class="control">
-                        <input class="input" type="text" placeholder="https://amazon.com" name="link">
-                    </div>
-                </div>
-
-                <div class="file has-name">
-                    <label class="file-label">
-                        <input class="file-input" type="file" name="image" accept="image/*">
-                        <span class="file-cta">
-                            <span class="file-icon">
-                                <i class="fas fa-upload"></i>
-                            </span>
-                            <span class="file-label">
-                                Upload an image...
-                            </span>
-                        </span>
-                        <span class="file-name" id="fileName"></span>
-                    </label>
-                </div>
-                <br>
-
-                <div class="field">
-                    <div class="control">
-                        <button class="button is-primary" type="submit" id="submit" disabled>Submit</button>
-                    </div>
-                </div>
-            </form>
+    <section class="hero is-large">
+        <div class="hero-body has-text-centered">
+            <p class="title has-text-white-bis is-1">The List</p>
         </div>
-
-        <div class="box">
-            <nav class="level">
-                <div class="level-left">
-                    <div class="level-item">
-                        <label for="orderBy">Order By</label>
-                        &nbsp;
-                        <div class="select">
-                            <select id="orderBy" name="orderBy">
-                                <option value="title-asc" selected>Name (A-Z)</option>
-                                <option value="title-desc">Name (Z-A)</option>
-                                <option value="cost-asc">Cost ($-$$$)</option>
-                                <option value="cost-desc">Cost ($$$-$)</option>
-                            </select>
+    </section>
+    <section class="section">
+        <div class="container">
+            {% include 'fragments/flash.html' %}
+            <br>
+            <div class="box is-hidden" id="new">
+                <form name="newItemForm">
+                    <div class="field">
+                        <label class="label required">Title</label>
+                        <div class="control">
+                            <input class="input" type="text" placeholder="Bag of Cash" name="title">
                         </div>
                     </div>
-                </div>
-
-                <div class="level-right">
-                    <div class="level-item">
-                        <input id="claimedSwitch" type="checkbox" name="claimedSwitch" class="switch is-danger">
-                        <label for="claimedSwitch">Show Claimed</label>
+                    <div class="field">
+                        <label class="label required">Cost</label>
+                        <div class="control">
+                            <input class="input"
+                                   type="number"
+                                   step="0.01"
+                                   min="0"
+                                   placeholder="15.23"
+                                   name="cost">
+                        </div>
                     </div>
-                </div>
-            </nav>
+                    <div class="field">
+                        <label class="label required">Desire</label>
+                        <div class="control">
+                            <input class="input" type="number" step="1" value="50" name="desire">
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Link</label>
+                        <div class="control">
+                            <input class="input"
+                                   type="text"
+                                   placeholder="https://amazon.com"
+                                   name="link">
+                        </div>
+                    </div>
+                    <div class="file has-name">
+                        <label class="file-label">
+                            <input class="file-input" type="file" name="image" accept="image/*">
+                            <span class="file-cta">
+                                <span class="file-icon">
+                                    <i class="fas fa-upload"></i>
+                                </span>
+                                <span class="file-label">Upload an image...</span>
+                            </span>
+                            <span class="file-name" id="fileName"></span>
+                        </label>
+                    </div>
+                    <br>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-primary" type="submit" id="submit" disabled>Submit</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="box">
+                <nav class="level">
+                    <div class="level-left">
+                        <div class="level-item">
+                            <label for="orderBy">Order By</label>
+                            &nbsp;
+                            <div class="select">
+                                <select id="orderBy" name="orderBy">
+                                    <option value="desire" selected>Desire</option>
+                                    <option value="title-asc">Name (A-Z)</option>
+                                    <option value="title-desc">Name (Z-A)</option>
+                                    <option value="cost-asc">Cost ($-$$$)</option>
+                                    <option value="cost-desc">Cost ($$$-$)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="level-right">
+                        <div class="level-item">
+                            <input id="claimedSwitch"
+                                   type="checkbox"
+                                   name="claimedSwitch"
+                                   class="switch is-danger">
+                            <label for="claimedSwitch">Show Claimed</label>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+            <div class="columns is-multiline" id="list"></div>
+            <div class="columns is-multiline" id="temp"></div>
         </div>
-
-        <div class="columns is-multiline" id="list"></div>
-        <div class="columns is-multiline" id="temp"></div>
-    </div>
-</section>
+    </section>
 {% endblock %}
