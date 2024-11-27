@@ -32,6 +32,29 @@ html::-webkit-scrollbar {
     background-color: #faa;
 }
 
+.card h3 {
+    margin-top: 0 !important;
+}
+
+
+.card-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.filler {
+    flex-grow: 1;
+}
+
 .card {
     height: 100%;
+    display: flex;
+    flex-direction: column;
 }
