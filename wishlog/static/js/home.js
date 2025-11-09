@@ -1,6 +1,6 @@
 const listEntryTemplate = Handlebars.compile(`
     <div class="column is-one-third-desktop">
-        <div class="card {{#if not owner}}{{#if claimed}}is-claimed{{/if}}{{/if}}">
+        <div class="card {{#unless owner}}{{#if claimed}}is-claimed{{/if}}{{/unless}}">
             <div class="card-image">
                 {{#if link}}<a href="{{ link }}" target="_blank">{{/if}}
                 <figure class="image is-4by3">
