@@ -179,7 +179,7 @@ window.onload = () => {
     temp.innerHTML = list.innerHTML;
     list.innerHTML = "";
 
-    const showClaimed = claimedSwitch.checked ? "&show_claimed" : "";
+    const showClaimed = owner || claimedSwitch.checked ? "&show_claimed" : "";
     const orderByValue = orderBy.value.split("-");
     const desc = orderByValue[1] == "desc" ? "&desc" : "";
 
