@@ -11,3 +11,5 @@ def register_before_request(app: Flask):
             current_user = User.get_by_id(user_id)
 
         request.user = current_user
+
+        session.permanent = True
