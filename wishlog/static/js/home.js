@@ -1,6 +1,6 @@
 const listEntryTemplate = Handlebars.compile(`
     <div class="column is-one-third-desktop">
-        <div class="card {{#unless owner}}{{#if claimed}}is-claimed{{/if}}{{/unless}}">
+        <div class="card {{#unless owner}}{{#if claimed}}is-claimed{{/if}}{{/unless}}{{#if spoil}}is-claimed{{/if}}">
             <div class="card-image">
                 {{#if link}}<a href="{{ link }}" target="_blank">{{/if}}
                 <figure class="image is-4by3">
@@ -11,7 +11,7 @@ const listEntryTemplate = Handlebars.compile(`
             <div class="card-content">
                 <div class="content">
                     <h1 class="title is-3">
-                        {{ title }}{{#if claimed}} - Claimed{{/if}}
+                        {{ title }}{{#unless owner}}{{#if claimed}} - Claimed{{/if}}{{/unless}}
                     </h1>
                     <h2 class="subtitle is-5">{{ price cost }}</h2>
 
@@ -97,7 +97,11 @@ window.onload = () => {
 
   const appendItem = (item, replace) => {
     const div = document.createElement("div");
-    div.innerHTML = listEntryTemplate({ ...item, owner }).trim();
+    div.innerHTML = listEntryTemplate({
+      ...item,
+      owner,
+      spoil: claimedSwitch.checked && owner,
+    }).trim();
 
     const element = div.firstChild;
 
@@ -198,6 +202,8 @@ window.onload = () => {
       if (data.user) {
         newFormParent.classList.remove("is-hidden");
         owner = true;
+        document.querySelector('label[for="claimedSwitch"]').innerHTML =
+          "Spoil My Surprises";
       }
 
       loadAllItems(claimedSwitch.checked);
