@@ -1,10 +1,13 @@
 from datetime import datetime
+from math import isfinite
 from re import match
 
 from flask import Blueprint, current_app, flash, jsonify, request, session
+from sqlalchemy.exc import IntegrityError
 
 from ..constants import USER_ID
-from ..image_processor import ImageProcessor
+from ..database import db
+from ..image_processor import ImageProcessor, InvalidImageError
 from ..models import Item, User
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -16,12 +19,37 @@ def api_response(success: bool, **kwargs):
     return jsonify(dict(success=success, **kwargs))
 
 
+def parse_cost(value) -> float:
+    cost = float(value)
+    if not isfinite(cost) or cost < 0:
+        raise ValueError("cost must be a finite, non-negative number")
+    return cost
+
+
 @api.route("/users", methods=["POST"])
 def register():
-    if User.get_by_id(1) is not None:
-        return api_response(False)
+    if User.setup_complete():
+        return api_response(False, message="Setup has already been completed")
 
-    new_user = User(request.json.get("username"), request.json.get("password")).save()
+    username = request.json.get("username")
+    password = request.json.get("password")
+
+    if not isinstance(username, str) or not username.strip():
+        return api_response(False, message="`username` is required")
+    if not isinstance(password, str) or not password:
+        return api_response(False, message="`password` is required")
+
+    try:
+        new_user = User(username.strip(), password).save()
+    except IntegrityError:
+        db.session.rollback()
+        return api_response(False, message="Setup has already been completed")
+
+    # Two registrations can pass the check above at the same time.
+    # Only the first user becomes the owner, so undo any later one.
+    if User.owner().id != new_user.id:
+        new_user.delete()
+        return api_response(False, message="Setup has already been completed")
 
     flash("Registration successful! You may now login", "success")
 
@@ -46,7 +74,7 @@ def login():
     password = request.json.get("password")
 
     if username is None or password is None:
-        return api_response(False, "`username` and `password` are required")
+        return api_response(False, message="`username` and `password` are required")
 
     if (user := User.get_by_uername(username)) is None or not user.check_password(
         password
@@ -85,12 +113,18 @@ def create_item():
 
     title = request.json.get("title")
 
-    if title is None:
-        return api_response(False, "`title` is required")
+    if not isinstance(title, str) or not title.strip():
+        return api_response(False, message="`title` is required")
 
-    cost = float(request.json["cost"])
-    desire = int(request.json['desire'])
+    try:
+        cost = parse_cost(request.json.get("cost"))
+        desire = int(request.json.get("desire"))
+    except (TypeError, ValueError):
+        return api_response(False, message="`cost` and `desire` must be valid numbers")
+
     link = request.json.get("link")
+    if link is not None and not isinstance(link, str):
+        return api_response(False, message="`link` must be a string")
 
     if link and match(r"^https?:\/\/", link) is None:
         link = "http://" + link
@@ -99,7 +133,12 @@ def create_item():
 
     image_file_path = None
     if base64_image:
-        image_file_path = image_processor.process_image(base64_image)
+        if not isinstance(base64_image, str):
+            return api_response(False, message="`image` must be a base64 string")
+        try:
+            image_file_path = image_processor.process_image(base64_image)
+        except InvalidImageError:
+            return api_response(False, message="Could not read the uploaded image")
 
     new_item = Item(
         title=title, cost=cost, link=link, image_file_path=image_file_path, desire=desire
@@ -117,17 +156,25 @@ def get_item(item_id: int):
 
 @api.route("/items/<int:item_id>", methods=["PATCH"])
 def patch_item(item_id: int):
+    if request.user is None:
+        return api_response(False)
+
     if (item := Item.get_by_id(item_id)) is None:
         return api_response(False, message="Item not found")
 
     new_desire = request.json.get("desire")
-    new_cost = request.json.get('cost')
+    new_cost = request.json.get("cost")
 
-    if (new_desire or new_cost):
-        item.desire = int(new_desire) if new_desire else item.desire
-        item.cost = float(new_cost) if new_cost else item.cost
+    try:
+        if new_desire not in (None, ""):
+            item.desire = int(new_desire)
+        if new_cost not in (None, ""):
+            item.cost = parse_cost(new_cost)
+    except (TypeError, ValueError):
+        db.session.rollback()
+        return api_response(False, message="`cost` and `desire` must be valid numbers")
 
-        item.save()
+    item.save()
 
     return api_response(True, item=item.to_dict())
 
@@ -139,7 +186,12 @@ def delete_item(item_id: int):
     if (item := Item.get_by_id(item_id)) is None:
         return api_response(False, message="Item not found")
 
+    image_file_path = item.image_file_path
     item.delete()
+
+    # Remove the file only after the row is gone, so a failed delete keeps its image
+    if image_file_path:
+        image_processor.delete_image(image_file_path)
 
     return api_response(True)
 
@@ -149,14 +201,19 @@ def claim(item_id: int):
     if (item := Item.get_by_id(item_id)) is None:
         return api_response(False, message="Item not found")
 
-    if item.claimed:
+    # A single conditional UPDATE, so two simultaneous claims can't both succeed
+    updated = (
+        Item.filter(Item.id == item.id, Item.claimed.isnot(True))
+        .update(
+            {Item.claimed: True, Item.claimed_date: datetime.now()},
+            synchronize_session=False,
+        )
+    )
+    db.session.commit()
+
+    if not updated:
         flash("Item already claimed", "warning")
         return api_response(False, message="Item already claimed")
-
-    item.claimed = True
-    item.claimed_date = datetime.now()
-
-    item.save()
 
     return api_response(True)
 

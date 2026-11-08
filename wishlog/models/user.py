@@ -1,4 +1,5 @@
 from hashlib import pbkdf2_hmac
+from hmac import compare_digest
 from os import urandom
 from typing import Any
 
@@ -28,7 +29,7 @@ class User(BaseModel):
     def check_password(self, password: str) -> bool:
         salt = self.password_hash[:32]
 
-        return self.hash_password(password, salt) == self.password_hash
+        return compare_digest(self.hash_password(password, salt), self.password_hash)
 
     @classmethod
     def get_by_uername(cls, username: str):
@@ -37,6 +38,15 @@ class User(BaseModel):
             .filter(func.lower(cls.username) == username.lower())
             .first()
         )
+
+    @classmethod
+    def owner(cls):
+        """The first registered user. Wishlog is single-owner."""
+        return db.session.query(cls).order_by(cls.id).first()
+
+    @classmethod
+    def setup_complete(cls) -> bool:
+        return cls.owner() is not None
 
     def _to_dict(self) -> dict[str, Any]:
         return {"username": self.username}

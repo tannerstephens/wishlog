@@ -1,0 +1,26 @@
+# Sample Docker Compose setup for WishLog.
+#
+#   cp .env.example .env    # optional: adjust settings
+#   docker compose up -d
+#
+# Then open http://localhost:8080 (or the WISHLOG_PORT you chose) and
+# register the owner account.
+
+services:
+  wishlog:
+    image: ghcr.io/tannerstephens/wishlog:latest
+    restart: unless-stopped
+    ports:
+      - "${WISHLOG_PORT:-8080}:80"
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      # Database and session secret key
+      - wishlog-database:/var/database
+      # Uploaded item images
+      - wishlog-images:/var/images
+
+volumes:
+  wishlog-database:
+  wishlog-images:

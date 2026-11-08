@@ -7,7 +7,7 @@ pages = Blueprint("pages", __name__)
 
 @pages.before_request
 def check_for_setup():
-    if request.path != "/register" and User.get_by_id(1) is None:
+    if request.path != "/register" and not User.setup_complete():
         flash("Please perform first time setup", "warning")
         return redirect("/register")
 
@@ -19,7 +19,7 @@ def home():
 
 @pages.route("/register")
 def register():
-    if User.get_by_id(1) is not None:
+    if User.setup_complete():
         return redirect("/")
     return render_template("pages/register.html")
 

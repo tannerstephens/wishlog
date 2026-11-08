@@ -76,7 +76,7 @@ const listEntryTemplate = Handlebars.compile(`
 `);
 
 Handlebars.registerHelper("price", function (cost) {
-  return `\$${cost.toFixed(2)}`;
+  return typeof cost === "number" ? `\$${cost.toFixed(2)}` : "";
 });
 
 window.onload = () => {
@@ -86,6 +86,7 @@ window.onload = () => {
   const newItemForm = document.forms["newItemForm"];
   const submitButton = document.getElementById("submit");
   const fileName = document.getElementById("fileName");
+  const formError = document.getElementById("formError");
 
   const claimedSwitch = document.getElementById("claimedSwitch");
 
@@ -179,8 +180,18 @@ window.onload = () => {
     }
   };
 
+  // Each load gets a number; only the most recent load is allowed to render, so
+  // quickly toggling the switch or sort order can't render two lists at once.
+  let latestLoad = 0;
+
   const loadAllItems = () => {
-    temp.innerHTML = list.innerHTML;
+    const thisLoad = ++latestLoad;
+
+    // Keep showing the old list while the new one loads. Skip if a previous
+    // load already moved it to temp (the list is empty then).
+    if (list.children.length > 0) {
+      temp.innerHTML = list.innerHTML;
+    }
     list.innerHTML = "";
 
     const showClaimed = owner || claimedSwitch.checked ? "&show_claimed" : "";
@@ -190,8 +201,13 @@ window.onload = () => {
     fetch(`/api/items?order_by=${orderByValue[0]}${desc}${showClaimed}`)
       .then((response) => response.json())
       .then((data) => {
+        if (thisLoad !== latestLoad) {
+          return;
+        }
+
+        list.innerHTML = "";
         data.items.reverse();
-        data.items.forEach(appendItem);
+        data.items.forEach((item) => appendItem(item));
         temp.innerHTML = "";
       });
   };
@@ -204,10 +220,23 @@ window.onload = () => {
         owner = true;
         document.querySelector('label[for="claimedSwitch"]').innerHTML =
           "Spoil My Surprises";
+        document.getElementById("logoutItem").classList.remove("is-hidden");
       }
 
-      loadAllItems(claimedSwitch.checked);
+      loadAllItems();
     });
+
+  let submitting = false;
+
+  const showFormError = (message) => {
+    formError.textContent = message;
+    formError.classList.remove("is-hidden");
+  };
+
+  const finishSubmit = () => {
+    submitting = false;
+    setState();
+  };
 
   const createItem = (item) => {
     fetch("/api/items", {
@@ -218,15 +247,30 @@ window.onload = () => {
       body: JSON.stringify(item),
     })
       .then((response) => response.json())
-      .then((data) => appendItem(data.item));
+      .then((data) => {
+        if (!data.success) {
+          showFormError(data.message || "Could not add the item");
+          return;
+        }
+
+        appendItem(data.item);
+        newItemForm.reset();
+        fileName.innerText = "";
+      })
+      .catch(() => showFormError("Could not reach the server, please try again"))
+      .finally(finishSubmit);
   };
 
   newItemForm.onsubmit = (e) => {
     e.preventDefault();
 
-    if (submitButton.disabled) {
+    if (submitButton.disabled || submitting) {
       return;
     }
+
+    submitting = true;
+    submitButton.disabled = true;
+    formError.classList.add("is-hidden");
 
     const body = {
       title: newItemForm.title.value,
@@ -245,6 +289,10 @@ window.onload = () => {
         body.image = reader.result.split(",", 2)[1];
         createItem(body);
       };
+      reader.onerror = () => {
+        showFormError("Could not read the selected image");
+        finishSubmit();
+      };
 
       reader.readAsDataURL(newItemForm.image.files[0]);
       return;
@@ -255,6 +303,7 @@ window.onload = () => {
 
   const setState = () => {
     submitButton.disabled =
+      submitting ||
       newItemForm.title.value.length == 0 ||
       newItemForm.cost.value.length == 0 ||
       newItemForm.desire.value.length == 0;
@@ -273,5 +322,11 @@ window.onload = () => {
 
   orderBy.onchange = () => {
     loadAllItems();
+  };
+
+  document.getElementById("logout").onclick = () => {
+    fetch("/api/session", { method: "DELETE" }).finally(() => {
+      window.location = "/";
+    });
   };
 };

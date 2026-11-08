@@ -2,11 +2,13 @@ import os
 
 """ GENERATE SECRET KEY """
 
+SECRET_KEY_FILE = os.environ.get("SECRET_KEY_FILE") or ".secret_key"
+
 if not os.environ.get("SECRET_KEY"):
     # Attempt to read the secret from the secret file
     # This will fail if the secret has not been written
     try:
-        with open(".secret_key", "rb") as secret:
+        with open(SECRET_KEY_FILE, "rb") as secret:
             key = secret.read()
     except (OSError, IOError):
         key = None
@@ -16,7 +18,7 @@ if not os.environ.get("SECRET_KEY"):
         # Attempt to write the secret file
         # This will fail if the filesystem is read-only
         try:
-            with open(".secret_key", "wb") as secret:
+            with open(SECRET_KEY_FILE, "wb") as secret:
                 secret.write(key)
                 secret.flush()
         except (OSError, IOError):
