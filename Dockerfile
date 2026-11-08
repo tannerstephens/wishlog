@@ -26,6 +26,12 @@ ENV DATABASE_URI=sqlite:////var/database/wishlog.db
 ENV SECRET_KEY_FILE=/var/database/.secret_key
 ENV IMAGE_STORAGE_DIRECTORY=/var/images
 
+# Headless Chromium for link previews of stores that refuse plain requests.
+# Installed system-wide so the unprivileged app user can run it.
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN playwright install --with-deps --only-shell chromium \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN useradd --create-home appuser
 RUN mkdir /var/database
 RUN mkdir /var/images

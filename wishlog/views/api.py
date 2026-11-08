@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from ..constants import USER_ID
 from ..database import db
 from ..image_processor import ImageProcessor, InvalidImageError
+from ..link_preview import LinkPreviewError, preview
 from ..models import Item, User
 
 api = Blueprint("api", __name__, url_prefix="/api")
@@ -145,6 +146,23 @@ def create_item():
     ).save()
 
     return api_response(True, item=new_item.to_dict())
+
+
+@api.route("/link-preview", methods=["POST"])
+def link_preview():
+    if request.user is None:
+        return api_response(False)
+
+    url = request.json.get("url")
+    if not isinstance(url, str) or not url.strip():
+        return api_response(False, message="`url` is required")
+
+    try:
+        result = preview(url)
+    except LinkPreviewError as e:
+        return api_response(False, message=str(e))
+
+    return api_response(True, preview=result.to_dict())
 
 
 @api.route("/items/<int:item_id>", methods=["GET"])

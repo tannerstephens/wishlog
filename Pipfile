@@ -9,6 +9,7 @@ gunicorn = "*"
 sqlalchemy = "*"
 alembic = "*"
 pillow = "*"
+playwright = "*"
 
 [dev-packages]
 

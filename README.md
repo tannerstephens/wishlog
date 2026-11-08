@@ -9,7 +9,7 @@ A self-hostable personal wishlist. Keep one list of the things you'd like and sh
 - **Surprises stay surprises.** As the owner you don't see what's been claimed, unless you turn on *Spoil my surprises*. While it's off, deleting an item asks "Really?" for every item alike, so it never hints at what was bought.
 - **Easy cleanup after the big day.** Turn on *Spoil my surprises* and claimed items delete in a single click.
 - **Prioritize by desire.** Give each item a desire score and sort the list by desire, name or cost.
-- **Links and pictures.** Attach a store link and an image to each item. Images are resized automatically.
+- **Links and pictures.** Attach a store link and an image to each item. Paste a link and the title, price and picture are filled in from the page when the store provides them. Images are resized automatically.
 - **Small and simple.** A single container with SQLite storage. No external database to run.
 
 ## Quick start
@@ -45,6 +45,7 @@ Everything is optional. Copy [`.env.example`](.env.example) to `.env` to change 
 | `SECRET_KEY_FILE` | `/var/database/.secret_key` | Where the generated key is kept. |
 | `DATABASE_URI` | `sqlite:////var/database/wishlog.db` | Database connection. Only SQLite is supported. |
 | `IMAGE_STORAGE_DIRECTORY` | `/var/images` | Where uploaded images are stored. |
+| `WISHLOG_BROWSER_PREVIEW` | *on* | Set to `off` to stop link previews from falling back to headless Chromium when a store refuses plain requests. |
 
 Leave unused settings commented out. An empty value such as `DATABASE_URI=` overrides the default instead of falling back to it.
 

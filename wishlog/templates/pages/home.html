@@ -21,13 +21,28 @@
                     <div class="columns is-multiline">
                         <div class="column is-full">
                             <div class="field">
+                                <label class="label" for="newLink">Link</label>
+                                <div class="control has-icons-left" id="linkControl">
+                                    <input class="input"
+                                           type="url"
+                                           id="newLink"
+                                           placeholder="Paste a link to fill in the details"
+                                           name="link"
+                                           aria-describedby="linkHelp">
+                                    <span class="icon is-small is-left"><i class="fas fa-link"></i></span>
+                                </div>
+                                <p class="help" id="linkHelp" aria-live="polite"></p>
+                            </div>
+                        </div>
+                        <div class="column is-full">
+                            <div class="field">
                                 <label class="label required" for="newTitle">Title</label>
                                 <div class="control">
                                     <input class="input" type="text" id="newTitle" placeholder="Bag of Cash" name="title" required>
                                 </div>
                             </div>
                         </div>
-                        <div class="column is-half-tablet is-one-quarter-desktop">
+                        <div class="column is-half-tablet">
                             <div class="field">
                                 <label class="label required" for="newCost">Cost</label>
                                 <div class="control has-icons-left">
@@ -44,26 +59,13 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="column is-half-tablet is-one-quarter-desktop">
+                        <div class="column is-half-tablet">
                             <div class="field">
                                 <label class="label required" for="newDesire">Desire</label>
                                 <div class="control">
                                     <input class="input" type="number" id="newDesire" step="1" value="50" name="desire" inputmode="numeric" required aria-describedby="desireHelp">
                                 </div>
                                 <p class="help" id="desireHelp">Higher means you want it more.</p>
-                            </div>
-                        </div>
-                        <div class="column is-full-tablet is-half-desktop">
-                            <div class="field">
-                                <label class="label" for="newLink">Link</label>
-                                <div class="control has-icons-left">
-                                    <input class="input"
-                                           type="url"
-                                           id="newLink"
-                                           placeholder="https://amazon.com"
-                                           name="link">
-                                    <span class="icon is-small is-left"><i class="fas fa-link"></i></span>
-                                </div>
                             </div>
                         </div>
                     </div>

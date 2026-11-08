@@ -419,7 +419,8 @@ window.onload = () => {
         appendItem(data.item);
         updateEmptyState();
         newItemForm.reset();
-        newItemForm.title.focus();
+        resetAutofill();
+        newItemForm.link.focus();
       })
       .catch(() =>
         showFormError("Could not reach the server, please try again"),
@@ -479,6 +480,163 @@ window.onload = () => {
       ? newItemForm.image.files[0].name
       : "No image";
   };
+
+  // Autofill: pasting a link fetches the page (through the server, since the
+  // browser can't read other sites) and fills in the blank fields from it.
+  // Fields the owner typed in themselves are never overwritten, but values
+  // filled in from an earlier link are replaced by the new link's.
+  const linkControl = document.getElementById("linkControl");
+  const linkHelp = document.getElementById("linkHelp");
+  let autofilled = {};
+  let imageAutofilled = false;
+  let latestPreview = 0;
+  let lastPreviewedLink = "";
+
+  const resetAutofill = () => {
+    latestPreview++;
+    autofilled = {};
+    imageAutofilled = false;
+    lastPreviewedLink = "";
+    linkControl.classList.remove("is-loading");
+    linkHelp.textContent = "";
+  };
+
+  const fillField = (name, value) => {
+    const input = newItemForm[name];
+    if (value === null || value === undefined || value === "") {
+      return false;
+    }
+    if (input.value && input.value !== autofilled[name]) {
+      return false;
+    }
+    input.value = value;
+    autofilled[name] = input.value;
+    return true;
+  };
+
+  const fillImage = (preview) => {
+    const input = newItemForm.image;
+    if (!preview.image || (input.value && !imageAutofilled)) {
+      return false;
+    }
+    try {
+      const bytes = Uint8Array.from(atob(preview.image), (c) => c.charCodeAt(0));
+      const file = new File([bytes], preview.image_name || "image", {
+        type: preview.image_type || "",
+      });
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      input.files = transfer.files;
+    } catch (e) {
+      // Older browsers can't set a file input; the owner can still pick one
+      return false;
+    }
+    imageAutofilled = true;
+    return true;
+  };
+
+  const describeFilled = (filled) => {
+    if (filled.length === 0) {
+      return "";
+    }
+    if (filled.length === 1) {
+      return filled[0];
+    }
+    return `${filled.slice(0, -1).join(", ")} and ${filled[filled.length - 1]}`;
+  };
+
+  const previewLink = () => {
+    const link = newItemForm.link.value.trim();
+    if (!link || link === lastPreviewedLink) {
+      return;
+    }
+    lastPreviewedLink = link;
+    const thisPreview = ++latestPreview;
+
+    linkControl.classList.add("is-loading");
+    linkHelp.textContent = "Looking up the details…";
+
+    fetch("/api/link-preview", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ url: link }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (thisPreview !== latestPreview) {
+          return;
+        }
+        if (!data.success) {
+          linkHelp.textContent = data.message
+            ? `Couldn't fill in the details: ${data.message}.`
+            : "Couldn't fill in the details from that link.";
+          return;
+        }
+
+        const preview = data.preview;
+        const found = [];
+        const filled = [];
+        const note = (isFound, didFill, label) => {
+          if (isFound) found.push(label);
+          if (didFill) filled.push(label);
+        };
+
+        note(!!preview.title, fillField("title", preview.title), "title");
+        note(
+          typeof preview.cost === "number",
+          typeof preview.cost === "number" &&
+            fillField("cost", preview.cost.toFixed(2)),
+          "cost",
+        );
+        note(!!preview.image, fillImage(preview), "image");
+        setState();
+
+        if (found.length === 0) {
+          linkHelp.textContent =
+            "Couldn't find any details on that page. Fill them in below.";
+        } else if (filled.length === 0) {
+          linkHelp.textContent = "Kept what you already entered.";
+        } else {
+          const missing = ["title", "cost"].filter((f) => !found.includes(f));
+          linkHelp.textContent =
+            `Filled in the ${describeFilled(filled)} from the page. Check before adding.` +
+            (missing.length
+              ? ` Couldn't find the ${describeFilled(missing)}.`
+              : "");
+        }
+      })
+      .catch(() => {
+        if (thisPreview === latestPreview) {
+          linkHelp.textContent = "Couldn't reach the server to look up that link.";
+        }
+      })
+      .finally(() => {
+        if (thisPreview === latestPreview) {
+          linkControl.classList.remove("is-loading");
+        }
+      });
+  };
+
+  // Paste fires before the input's value updates, so wait a tick
+  newItemForm.link.addEventListener("paste", () => setTimeout(previewLink));
+  // Typed links are looked up once the field loses focus
+  newItemForm.link.addEventListener("change", previewLink);
+  newItemForm.link.addEventListener("input", () => {
+    // Cleared link: cancel any lookup, but keep track of what was autofilled
+    // so a different link pasted next can still replace those values
+    if (!newItemForm.link.value.trim()) {
+      latestPreview++;
+      lastPreviewedLink = "";
+      linkControl.classList.remove("is-loading");
+      linkHelp.textContent = "";
+    }
+  });
+  // An image the owner picks themselves is theirs to keep
+  newItemForm.image.addEventListener("change", () => {
+    imageAutofilled = false;
+  });
 
   newItemForm.oninput = setState;
   newItemForm.onchange = setState;
