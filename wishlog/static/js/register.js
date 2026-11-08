@@ -13,6 +13,7 @@ window.onload = () => {
 
         formError.classList.add('is-hidden');
         submitButton.disabled = true;
+        submitButton.classList.add('is-loading');
 
         fetch('/api/users', {
             method: 'POST',
@@ -33,6 +34,9 @@ window.onload = () => {
                 }
             })
             .catch(() => showError('Could not reach the server, please try again'))
-            .finally(() => { submitButton.disabled = false; });
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.classList.remove('is-loading');
+            });
     }
 }

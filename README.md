@@ -5,8 +5,9 @@ A self-hostable personal wishlist. Keep one list of the things you'd like and sh
 ## Features
 
 - **One list, one owner.** The first account registered owns the list. Everyone else just visits the page, no account needed.
-- **Duplicate-free gifting.** Visitors mark an item as purchased and it drops off the list for everyone else.
-- **Surprises stay surprises.** As the owner you don't see what's been claimed, unless you turn on *Spoil My Surprises*.
+- **Duplicate-free gifting.** Visitors mark an item as purchased and it drops off the list for everyone else. Changed your mind? The browser that claimed an item remembers it and can unclaim it later.
+- **Surprises stay surprises.** As the owner you don't see what's been claimed, unless you turn on *Spoil my surprises*. While it's off, deleting an item asks "Really?" for every item alike, so it never hints at what was bought.
+- **Easy cleanup after the big day.** Turn on *Spoil my surprises* and claimed items delete in a single click.
 - **Prioritize by desire.** Give each item a desire score and sort the list by desire, name or cost.
 - **Links and pictures.** Attach a store link and an image to each item. Images are resized automatically.
 - **Small and simple.** A single container with SQLite storage. No external database to run.
@@ -91,7 +92,18 @@ task dev        # or: pipenv run python dev.py
 
 The dev server runs at <http://127.0.0.1:5000> with auto-reload. Locally the database is `wishlog.db` and the session key is `.secret_key`, both in the project root. Images default to `/tmp`, which is why the example above sets `IMAGE_STORAGE_DIRECTORY`.
 
-After changing a model, generate a migration and check it before committing:
+### Sample data
+
+```sh
+task seed               # or: pipenv run python seed.py
+task seed -- --reset    # wipe existing users, items and images first
+```
+
+This adds an owner account (log in as `owner` / `password`) and a handful of items, some with images and links and a couple already claimed, so every state of the list is easy to try. Without `--reset` it refuses to touch a database that already has data.
+
+### Migrations
+
+`task migrate` only applies migrations the database doesn't have yet; it never deletes data. After changing a model, generate a migration and check it before committing:
 
 ```sh
 task make-migrations    # or: pipenv run alembic revision --autogenerate
@@ -110,6 +122,8 @@ wishlog/
 ├── static/          JavaScript, CSS and images for the frontend
 └── config.py        Settings read from environment variables
 alembic/             Database migrations
+dev.py               Development server
+seed.py              Sample data for development
 ```
 
 The frontend is plain JavaScript with [Handlebars](https://handlebarsjs.com/) templates and [Bulma](https://bulma.io/) styling, talking to the JSON API.

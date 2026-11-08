@@ -1,70 +1,74 @@
 const listEntryTemplate = Handlebars.compile(`
-    <div class="column is-one-third-desktop">
-        <div class="card {{#unless owner}}{{#if claimed}}is-claimed{{/if}}{{/unless}}{{#if spoil}}{{#if claimed}}is-claimed{{/if}}{{/if}}">
+    <div class="column is-half-tablet is-one-third-desktop">
+        <div class="card {{#if showAsClaimed}}is-claimed{{/if}}">
             <div class="card-image">
-                {{#if link}}<a href="{{ link }}" target="_blank">{{/if}}
+                {{#if link}}<a href="{{ link }}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">{{/if}}
                 <figure class="image is-4by3">
-                    <img src="{{ image }}" loading="lazy">
+                    {{#if image}}
+                    <img src="{{ image }}" alt="{{ title }}" loading="lazy">
+                    {{else}}
+                    <span class="image-placeholder"><i class="fas fa-gift"></i></span>
+                    {{/if}}
                 </figure>
                 {{#if link}}</a>{{/if}}
             </div>
             <div class="card-content">
                 <div class="content">
-                    <h1 class="title is-3">
-                        {{ title }}{{#unless owner}}{{#if claimed}} - Claimed{{/if}}{{/unless}}
-                    </h1>
-                    <h2 class="subtitle is-5">{{ price cost }}</h2>
+                    <h3 class="title is-4 item-title">{{ title }}</h3>
+                    <div class="item-meta">
+                        <span class="subtitle is-5 has-text-weight-semibold">{{ price cost }}</span>
+                        {{#if claimedByMe}}
+                        <span class="tag is-success is-light">You claimed this</span>
+                        {{else if showAsClaimed}}
+                        <span class="tag is-danger is-light">Claimed</span>
+                        {{/if}}
+                    </div>
 
                     <div class="filler"></div>
 
                     {{#if owner}}
-                    <h3>Edit This Item</h3>
-                    <div class="field">
-                        <label class="label">Cost</label>
-                        <div class="field-body">
+                    <div class="item-edit">
+                    <div class="columns is-mobile is-variable is-2">
+                        <div class="column">
                             <div class="field">
+                                <label class="label" for="cost-{{ id }}">Cost</label>
                                 <div class="control">
-                                    <input class="input" type="number" step="0.01" min="0" value="{{ cost }}" id="cost-{{ id }}">
+                                    <input class="input is-small" type="number" step="0.01" min="0" inputmode="decimal" value="{{ cost }}" id="cost-{{ id }}" data-field="cost">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="field">
+                                <label class="label" for="desire-{{ id }}">Desire</label>
+                                <div class="control">
+                                    <input class="input is-small" type="number" step="1" inputmode="numeric" value="{{ desire }}" id="desire-{{ id }}" data-field="desire">
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="field">
-                        <label class="label">Desire</label>
-                        <div class="field-body">
-                            <div class="field">
-                                <div class="control">
-                                    <input class="input" type="number" step="1" value="{{ desire }}" id="desire-{{ id }}">
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     {{/if}}
 
-
-                    <div class="field is-grouped">
+                    <div class="buttons">
                         {{#if link}}
-                        <p class="control">
-                            <a class="button is-warning" href="{{ link }}" target="_blank">Browse Item</a>
-                        </p>
+                        <a class="button is-warning is-light" href="{{ link }}" target="_blank" rel="noopener noreferrer">
+                            <span>View item</span>
+                            <span class="icon is-small"><i class="fas fa-external-link-alt"></i></span>
+                        </a>
                         {{/if}}
 
                         {{#if owner}}
-                            <p class="control">
-                                <a class="button is-danger" id="delete-{{ id }}">Delete</a>
-                            </p>
+                            <button type="button" class="button is-danger is-outlined" data-action="delete">Delete</button>
                         {{else}}
                             {{#if claimed}}
-                                {{#if justclaimed}}
-                                <p class="control">
-                                    <a class="button is-danger" id="unclaim-{{ id }}">Unclaim</a>
-                                </p>
+                                {{#if claimedByMe}}
+                                <button type="button" class="button is-danger is-light" data-action="unclaim">Unclaim</button>
                                 {{/if}}
                             {{else}}
-                            <p class="control">
-                                <a class="button is-info" id="claim-{{ id }}">Mark As Purchased</a>
-                            </p>
+                            <button type="button" class="button is-info" data-action="claim">
+                                <span class="icon is-small"><i class="fas fa-check"></i></span>
+                                <span>Mark as purchased</span>
+                            </button>
                             {{/if}}
                         {{/if}}
                     </div>
@@ -78,6 +82,52 @@ const listEntryTemplate = Handlebars.compile(`
 Handlebars.registerHelper("price", function (cost) {
   return typeof cost === "number" ? `\$${cost.toFixed(2)}` : "";
 });
+
+// Items this browser has claimed, remembered so the visitor can still unclaim a
+// claim after reloading. Storage can be unavailable (private mode, blocked
+// site data); the page then works as before, just without remembering.
+const myClaims = (() => {
+  const key = "wishlog.myClaims";
+  let ids = new Set();
+
+  try {
+    const stored = JSON.parse(localStorage.getItem(key));
+    if (Array.isArray(stored)) {
+      ids = new Set(stored.filter(Number.isInteger));
+    }
+  } catch (e) {}
+
+  const save = () => {
+    try {
+      localStorage.setItem(key, JSON.stringify([...ids]));
+    } catch (e) {}
+  };
+
+  return {
+    has: (id) => ids.has(id),
+    size: () => ids.size,
+    add: (id) => {
+      ids.add(id);
+      save();
+    },
+    remove: (id) => {
+      ids.delete(id);
+      save();
+    },
+    // Forget items that were deleted or unclaimed by someone else
+    keepOnly: (items) => {
+      const stillMine = new Set(
+        items
+          .filter((item) => item.claimed && ids.has(item.id))
+          .map((item) => item.id),
+      );
+      if (stillMine.size !== ids.size) {
+        ids = stillMine;
+        save();
+      }
+    },
+  };
+})();
 
 window.onload = () => {
   const newFormParent = document.getElementById("new");
@@ -94,14 +144,54 @@ window.onload = () => {
 
   const orderBy = document.getElementById("orderBy");
 
+  const empty = document.getElementById("empty");
+  const emptyTitle = document.getElementById("emptyTitle");
+  const emptyText = document.getElementById("emptyText");
+
   let owner = false;
+
+  const updateEmptyState = () => {
+    const isEmpty = list.children.length === 0;
+    empty.classList.toggle("is-hidden", !isEmpty);
+    if (!isEmpty) {
+      return;
+    }
+
+    if (owner) {
+      emptyTitle.textContent = "Your list is empty";
+      emptyText.textContent =
+        "Add the first thing you'd like using the form above.";
+    } else if (claimedSwitch.checked) {
+      emptyTitle.textContent = "There's nothing on the list yet";
+      emptyText.textContent = "Check back later.";
+    } else {
+      emptyTitle.textContent = "Everything has been claimed";
+      emptyText.textContent =
+        "Nothing is left to buy right now. Check back later!";
+    }
+  };
+
+  // Run a request from a button, showing a spinner and blocking double clicks
+  const withLoading = (button, request) => {
+    button.classList.add("is-loading");
+    button.disabled = true;
+    return request().finally(() => {
+      button.classList.remove("is-loading");
+      button.disabled = false;
+    });
+  };
+
+  const postJson = (url, method) =>
+    fetch(url, { method }).then((response) => response.json());
 
   const appendItem = (item, replace) => {
     const div = document.createElement("div");
+    item.claimedByMe = !owner && item.claimed && myClaims.has(item.id);
+
     div.innerHTML = listEntryTemplate({
       ...item,
       owner,
-      spoil: claimedSwitch.checked && owner,
+      showAsClaimed: item.claimed && (!owner || claimedSwitch.checked),
     }).trim();
 
     const element = div.firstChild;
@@ -112,23 +202,64 @@ window.onload = () => {
       list.prepend(element);
     }
 
+    const button = (action) =>
+      element.querySelector(`[data-action="${action}"]`);
+
     if (owner) {
-      document.getElementById(`delete-${item.id}`).onclick = () => {
-        fetch(`/api/items/${item.id}`, {
-          method: "DELETE",
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success) {
-              element.remove();
-            }
-          });
+      const deleteButton = button("delete");
+
+      const deleteItem = () =>
+        withLoading(deleteButton, () =>
+          postJson(`/api/items/${item.id}`, "DELETE")
+            .then((data) => {
+              if (data.success) {
+                element.remove();
+                updateEmptyState();
+              } else {
+                alert(data.message || "Could not delete the item");
+              }
+            })
+            .catch(() => alert("Could not reach the server, please try again")),
+        );
+
+      // First click arms the button ("Really?"), a second click deletes.
+      let disarmTimer = null;
+      const disarm = () => {
+        clearTimeout(disarmTimer);
+        delete deleteButton.dataset.armed;
+        deleteButton.textContent = "Delete";
+        deleteButton.classList.add("is-outlined");
       };
 
-      const desireInput = document.getElementById(`desire-${item.id}`);
-      const costInput = document.getElementById(`cost-${item.id}`);
+      deleteButton.onclick = () => {
+        // Claimed items with surprises spoiled delete in one click, for quick
+        // pruning of gifts already received after the event
+        if (item.claimed && claimedSwitch.checked) {
+          deleteItem();
+          return;
+        }
 
-      const patchItem = () => {
+        // Every other delete, including claimed items while surprises are
+        // hidden, uses the same two-step so it gives nothing away.
+        if (deleteButton.dataset.armed) {
+          disarm();
+          deleteItem();
+          return;
+        }
+
+        deleteButton.dataset.armed = "true";
+        deleteButton.textContent = "Really?";
+        deleteButton.classList.remove("is-outlined");
+        disarmTimer = setTimeout(disarm, 3000);
+      };
+      deleteButton.onblur = disarm;
+
+      const desireInput = element.querySelector('[data-field="desire"]');
+      const costInput = element.querySelector('[data-field="cost"]');
+
+      const patchItem = (input) => {
+        input.classList.remove("is-saved", "is-danger");
+
         fetch(`/api/items/${item.id}`, {
           method: "PATCH",
           headers: {
@@ -138,44 +269,57 @@ window.onload = () => {
             desire: desireInput.value,
             cost: costInput.value,
           }),
-        });
-      };
-
-      desireInput.onchange = patchItem;
-      costInput.onchange = patchItem;
-    } else if (item.justclaimed) {
-      document.getElementById(`unclaim-${item.id}`).onclick = () => {
-        fetch(`/api/items/${item.id}/unclaim`, {
-          method: "POST",
         })
           .then((response) => response.json())
           .then((data) => {
+            if (!data.success) {
+              throw new Error(data.message);
+            }
+
+            item.cost = data.item.cost;
+            item.desire = data.item.desire;
+            element.querySelector(".item-meta .subtitle").textContent =
+              Handlebars.helpers.price(item.cost);
+
+            input.classList.add("is-saved");
+            setTimeout(() => input.classList.remove("is-saved"), 1500);
+          })
+          .catch(() => input.classList.add("is-danger"));
+      };
+
+      desireInput.onchange = () => patchItem(desireInput);
+      costInput.onchange = () => patchItem(costInput);
+    } else if (item.claimedByMe) {
+      const unclaimButton = button("unclaim");
+      unclaimButton.onclick = () => {
+        withLoading(unclaimButton, () =>
+          postJson(`/api/items/${item.id}/unclaim`, "POST").then((data) => {
             if (data.success) {
               item.claimed = false;
-              item.justclaimed = false;
+              myClaims.remove(item.id);
 
               appendItem(item, element);
             } else {
               location.reload();
             }
-          });
+          }),
+        ).catch(() => alert("Could not reach the server, please try again"));
       };
     } else if (!item.claimed) {
-      document.getElementById(`claim-${item.id}`).onclick = () => {
-        fetch(`/api/items/${item.id}/claim`, {
-          method: "POST",
-        })
-          .then((response) => response.json())
-          .then((data) => {
+      const claimButton = button("claim");
+      claimButton.onclick = () => {
+        withLoading(claimButton, () =>
+          postJson(`/api/items/${item.id}/claim`, "POST").then((data) => {
             if (data.success) {
               item.claimed = true;
-              item.justclaimed = true;
+              myClaims.add(item.id);
 
               appendItem(item, element);
             } else {
               location.reload();
             }
-          });
+          }),
+        ).catch(() => alert("Could not reach the server, please try again"));
       };
     }
   };
@@ -194,7 +338,12 @@ window.onload = () => {
     }
     list.innerHTML = "";
 
-    const showClaimed = owner || claimedSwitch.checked ? "&show_claimed" : "";
+    // A visitor with claims of their own needs claimed items too, so their
+    // claims (and Unclaim buttons) survive a reload. Other claimed items are
+    // filtered out below unless "Show claimed" is on.
+    const includeMyClaims = !owner && myClaims.size() > 0;
+    const fetchClaimed = owner || claimedSwitch.checked || includeMyClaims;
+    const showClaimed = fetchClaimed ? "&show_claimed" : "";
     const orderByValue = orderBy.value.split("-");
     const desc = orderByValue[1] == "desc" ? "&desc" : "";
 
@@ -205,10 +354,21 @@ window.onload = () => {
           return;
         }
 
+        let items = data.items;
+        if (!owner && fetchClaimed) {
+          myClaims.keepOnly(items);
+        }
+        if (!owner && !claimedSwitch.checked) {
+          items = items.filter(
+            (item) => !item.claimed || myClaims.has(item.id),
+          );
+        }
+
         list.innerHTML = "";
-        data.items.reverse();
-        data.items.forEach((item) => appendItem(item));
+        items.reverse();
+        items.forEach((item) => appendItem(item));
         temp.innerHTML = "";
+        updateEmptyState();
       });
   };
 
@@ -218,8 +378,10 @@ window.onload = () => {
       if (data.user) {
         newFormParent.classList.remove("is-hidden");
         owner = true;
-        document.querySelector('label[for="claimedSwitch"]').innerHTML =
-          "Spoil My Surprises";
+        document.querySelector('label[for="claimedSwitch"]').textContent =
+          "Spoil my surprises";
+        document.getElementById("heroSubtitle").textContent =
+          "Add what you'd like. Claimed gifts stay hidden from you unless you spoil the surprise.";
         document.getElementById("logoutItem").classList.remove("is-hidden");
       }
 
@@ -235,6 +397,7 @@ window.onload = () => {
 
   const finishSubmit = () => {
     submitting = false;
+    submitButton.classList.remove("is-loading");
     setState();
   };
 
@@ -254,10 +417,13 @@ window.onload = () => {
         }
 
         appendItem(data.item);
+        updateEmptyState();
         newItemForm.reset();
-        fileName.innerText = "";
+        newItemForm.title.focus();
       })
-      .catch(() => showFormError("Could not reach the server, please try again"))
+      .catch(() =>
+        showFormError("Could not reach the server, please try again"),
+      )
       .finally(finishSubmit);
   };
 
@@ -270,6 +436,7 @@ window.onload = () => {
 
     submitting = true;
     submitButton.disabled = true;
+    submitButton.classList.add("is-loading");
     formError.classList.add("is-hidden");
 
     const body = {
@@ -304,16 +471,17 @@ window.onload = () => {
   const setState = () => {
     submitButton.disabled =
       submitting ||
-      newItemForm.title.value.length == 0 ||
+      newItemForm.title.value.trim().length == 0 ||
       newItemForm.cost.value.length == 0 ||
       newItemForm.desire.value.length == 0;
 
-    if (newItemForm.image.value) {
-      fileName.innerText = newItemForm.image.files[0].name;
-    }
+    fileName.textContent = newItemForm.image.value
+      ? newItemForm.image.files[0].name
+      : "No image";
   };
 
   newItemForm.oninput = setState;
+  newItemForm.onchange = setState;
   setState();
 
   claimedSwitch.onchange = () => {

@@ -4,83 +4,106 @@
     <script src="/static/js/home.js"></script>
 {% endblock %}
 {% block content %}
-    <section class="hero is-large">
+    <section class="hero is-medium">
         <div class="hero-body has-text-centered">
-            <p class="title has-text-white-bis is-1">The List</p>
+            <h1 class="title has-text-white-bis is-1">The List</h1>
+            <p class="subtitle has-text-white-ter" id="heroSubtitle">
+                Found something to give? Mark it as purchased so nobody else buys it too.
+            </p>
         </div>
     </section>
     <section class="section">
         <div class="container">
             {% include 'fragments/flash.html' %}
-            <br>
             <div class="box is-hidden" id="new">
-                <form name="newItemForm">
-                    <div class="field">
-                        <label class="label required">Title</label>
-                        <div class="control">
-                            <input class="input" type="text" placeholder="Bag of Cash" name="title">
+                <h2 class="title is-4">Add an item</h2>
+                <form name="newItemForm" novalidate>
+                    <div class="columns is-multiline">
+                        <div class="column is-full">
+                            <div class="field">
+                                <label class="label required" for="newTitle">Title</label>
+                                <div class="control">
+                                    <input class="input" type="text" id="newTitle" placeholder="Bag of Cash" name="title" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="column is-half-tablet is-one-quarter-desktop">
+                            <div class="field">
+                                <label class="label required" for="newCost">Cost</label>
+                                <div class="control has-icons-left">
+                                    <input class="input"
+                                           type="number"
+                                           id="newCost"
+                                           step="0.01"
+                                           min="0"
+                                           inputmode="decimal"
+                                           placeholder="15.23"
+                                           name="cost"
+                                           required>
+                                    <span class="icon is-small is-left"><i class="fas fa-dollar-sign"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="column is-half-tablet is-one-quarter-desktop">
+                            <div class="field">
+                                <label class="label required" for="newDesire">Desire</label>
+                                <div class="control">
+                                    <input class="input" type="number" id="newDesire" step="1" value="50" name="desire" inputmode="numeric" required aria-describedby="desireHelp">
+                                </div>
+                                <p class="help" id="desireHelp">Higher means you want it more.</p>
+                            </div>
+                        </div>
+                        <div class="column is-full-tablet is-half-desktop">
+                            <div class="field">
+                                <label class="label" for="newLink">Link</label>
+                                <div class="control has-icons-left">
+                                    <input class="input"
+                                           type="url"
+                                           id="newLink"
+                                           placeholder="https://amazon.com"
+                                           name="link">
+                                    <span class="icon is-small is-left"><i class="fas fa-link"></i></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="field">
-                        <label class="label required">Cost</label>
+                    <div class="notification is-danger is-hidden" id="formError" role="alert"></div>
+                    <div class="field is-grouped is-grouped-multiline">
                         <div class="control">
-                            <input class="input"
-                                   type="number"
-                                   step="0.01"
-                                   min="0"
-                                   placeholder="15.23"
-                                   name="cost">
+                            <div class="file has-name">
+                                <label class="file-label">
+                                    <input class="file-input" type="file" name="image" accept="image/*">
+                                    <span class="file-cta">
+                                        <span class="file-icon">
+                                            <i class="fas fa-upload"></i>
+                                        </span>
+                                        <span class="file-label">Add an image…</span>
+                                    </span>
+                                    <span class="file-name" id="fileName">No image</span>
+                                </label>
+                            </div>
                         </div>
-                    </div>
-                    <div class="field">
-                        <label class="label required">Desire</label>
                         <div class="control">
-                            <input class="input" type="number" step="1" value="50" name="desire">
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label class="label">Link</label>
-                        <div class="control">
-                            <input class="input"
-                                   type="text"
-                                   placeholder="https://amazon.com"
-                                   name="link">
-                        </div>
-                    </div>
-                    <div class="file has-name">
-                        <label class="file-label">
-                            <input class="file-input" type="file" name="image" accept="image/*">
-                            <span class="file-cta">
-                                <span class="file-icon">
-                                    <i class="fas fa-upload"></i>
-                                </span>
-                                <span class="file-label">Upload an image...</span>
-                            </span>
-                            <span class="file-name" id="fileName"></span>
-                        </label>
-                    </div>
-                    <br>
-                    <div class="notification is-danger is-hidden" id="formError"></div>
-                    <div class="field">
-                        <div class="control">
-                            <button class="button is-primary" type="submit" id="submit" disabled>Submit</button>
+                            <button class="button is-primary" type="submit" id="submit" disabled>
+                                <span class="icon is-small"><i class="fas fa-plus"></i></span>
+                                <span>Add to list</span>
+                            </button>
                         </div>
                     </div>
                 </form>
             </div>
-            <div class="box">
+            <div class="box toolbar">
                 <nav class="level">
                     <div class="level-left">
                         <div class="level-item">
-                            <label for="orderBy">Order By</label>
-                            &nbsp;
+                            <label for="orderBy">Order by</label>
                             <div class="select">
                                 <select id="orderBy" name="orderBy">
-                                    <option value="desire" selected>Desire</option>
-                                    <option value="title-asc">Name (A-Z)</option>
-                                    <option value="title-desc">Name (Z-A)</option>
-                                    <option value="cost-asc">Cost ($-$$$)</option>
-                                    <option value="cost-desc">Cost ($$$-$)</option>
+                                    <option value="desire" selected>Most wanted</option>
+                                    <option value="title-asc">Name (A–Z)</option>
+                                    <option value="title-desc">Name (Z–A)</option>
+                                    <option value="cost-asc">Cost (low to high)</option>
+                                    <option value="cost-desc">Cost (high to low)</option>
                                 </select>
                             </div>
                         </div>
@@ -90,17 +113,31 @@
                             <input id="claimedSwitch"
                                    type="checkbox"
                                    name="claimedSwitch"
-                                   class="switch is-danger">
-                            <label for="claimedSwitch">Show Claimed</label>
+                                   class="switch is-rounded is-danger">
+                            <label for="claimedSwitch">Show claimed</label>
                         </div>
                         <div class="level-item is-hidden" id="logoutItem">
-                            <button class="button is-small" type="button" id="logout">Log Out</button>
+                            <button class="button is-small is-light" type="button" id="logout">
+                                <span class="icon is-small"><i class="fas fa-sign-out-alt"></i></span>
+                                <span>Log out</span>
+                            </button>
                         </div>
                     </div>
                 </nav>
             </div>
-            <div class="columns is-multiline" id="list"></div>
-            <div class="columns is-multiline" id="temp"></div>
+            <div class="box empty-state is-hidden" id="empty">
+                <span class="icon is-large"><i class="fas fa-gift fa-3x"></i></span>
+                <p class="title is-5" id="emptyTitle"></p>
+                <p class="subtitle is-6 has-text-grey" id="emptyText"></p>
+            </div>
+            <div class="columns is-multiline" id="list" aria-live="polite"></div>
+            <div class="columns is-multiline" id="temp" aria-hidden="true"></div>
         </div>
     </section>
+    <footer class="site-footer">
+        WishLog
+        {% if not request.user %}
+            · <a href="/login">Owner log in</a>
+        {% endif %}
+    </footer>
 {% endblock %}

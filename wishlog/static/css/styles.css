@@ -1,16 +1,18 @@
-html,
-body {
+html {
+    /* Set on html only so it covers the whole canvas, however long the page */
+    background-color: #ececec;
     background-image: url('/static/img/backgroud.bmp');
     background-repeat: repeat;
-    background-attachment: fixed;
-    -ms-overflow-style: none;
-    /* IE and Edge */
-    scrollbar-width: none;
-    /* Firefox */
 }
 
-html::-webkit-scrollbar {
-    display: none;
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body > .section {
+    flex-grow: 1;
 }
 
 .hero {
@@ -19,23 +21,65 @@ html::-webkit-scrollbar {
     background-position: center;
 }
 
+.hero .subtitle {
+    max-width: 36rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.flash-messages {
+    margin-bottom: 1.5rem;
+}
+
 .required::after {
-    content: "*";
-    color: red;
+    content: " *";
+    color: #f14668;
+}
+
+/* ---- Toolbar ---- */
+
+.toolbar label[for="orderBy"] {
+    margin-right: 0.5rem;
+}
+
+/* ---- Item cards ---- */
+
+.card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(10, 10, 10, 0.12), 0 0 0 1px rgba(10, 10, 10, 0.04);
 }
 
 .card-image {
-    background-color: #eee;
+    background-color: #f5f5f5;
 }
 
-.is-claimed {
-    background-color: #faa;
+.card-image .image img {
+    object-fit: contain;
 }
 
-.card h3 {
-    margin-top: 0 !important;
+.card-image a:focus-visible {
+    outline: 3px solid #3273dc;
+    outline-offset: -3px;
 }
 
+.image-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dbdbdb;
+    font-size: 4rem;
+}
 
 .card-content {
     display: flex;
@@ -43,18 +87,107 @@ html::-webkit-scrollbar {
     flex-grow: 1;
 }
 
-.content {
+.card .content {
     display: flex;
     flex-direction: column;
     flex-grow: 1;
+}
+
+.card .item-title {
+    margin-bottom: 0.25rem;
+    overflow-wrap: anywhere;
+}
+
+.card .item-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.card .item-meta .subtitle {
+    margin: 0;
 }
 
 .filler {
     flex-grow: 1;
 }
 
-.card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+.item-edit {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 0.75rem;
+}
+
+.item-edit .columns {
+    margin-bottom: 0.25rem;
+}
+
+.item-edit .label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #7a7a7a;
+}
+
+.input.is-saved {
+    border-color: #48c774;
+    transition: border-color 0.2s ease;
+}
+
+.card.is-claimed {
+    background-color: #fff5f7;
+}
+
+.card.is-claimed .card-image img,
+.card.is-claimed .image-placeholder {
+    opacity: 0.5;
+    filter: grayscale(1);
+}
+
+@media screen and (max-width: 768px) {
+    .hero .title.is-1 {
+        font-size: 2.5rem;
+    }
+
+    .hero .subtitle {
+        font-size: 1rem;
+    }
+}
+
+/* ---- Empty state ---- */
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+}
+
+.empty-state .icon {
+    color: #b5b5b5;
+    margin-bottom: 1rem;
+}
+
+/* ---- Footer ---- */
+
+.site-footer {
+    padding: 1.5rem;
+    text-align: center;
+    color: #7a7a7a;
+    font-size: 0.875rem;
+}
+
+.site-footer a {
+    color: #4a4a4a;
+    text-decoration: underline;
+}
+
+/* ---- Auth pages ---- */
+
+.auth-brand {
+    display: block;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #363636;
+}
+
+.auth-brand:hover {
+    color: #000;
 }

@@ -10,3 +10,8 @@ tasks:
   dev:
     cmds:
       - pipenv run python dev.py
+  seed:
+    desc: Fill the database with sample data (pass -- --reset to wipe it first)
+    cmds:
+      - task: migrate
+      - pipenv run python seed.py {{.CLI_ARGS}}
