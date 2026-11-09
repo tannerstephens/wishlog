@@ -191,3 +191,23 @@ body > .section {
 .auth-brand:hover {
     color: #000;
 }
+
+/* Status tags on cards ("You claimed this", "Claimed"). Bulma 1.0's light
+   tags are a pale tint with near-black text; use the tag's own colour for
+   darker text and a border so the status reads at a glance. */
+.card .item-meta .tag.is-light {
+  border: 1px solid;
+  font-weight: 600;
+}
+
+.card .item-meta .tag.is-success.is-light {
+  color: hsl(var(--bulma-success-h), var(--bulma-success-s), 24%);
+  background-color: hsl(var(--bulma-success-h), var(--bulma-success-s), 94%);
+  border-color: hsl(var(--bulma-success-h), var(--bulma-success-s), 60%);
+}
+
+.card .item-meta .tag.is-danger.is-light {
+  color: hsl(var(--bulma-danger-h), var(--bulma-danger-s), 34%);
+  background-color: hsl(var(--bulma-danger-h), var(--bulma-danger-s), 96%);
+  border-color: hsl(var(--bulma-danger-h), var(--bulma-danger-s), 70%);
+}

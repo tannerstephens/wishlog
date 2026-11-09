@@ -22,14 +22,23 @@
                         <div class="column is-full">
                             <div class="field">
                                 <label class="label" for="newLink">Link</label>
-                                <div class="control has-icons-left" id="linkControl">
-                                    <input class="input"
-                                           type="url"
-                                           id="newLink"
-                                           placeholder="Paste a link to fill in the details"
-                                           name="link"
-                                           aria-describedby="linkHelp">
-                                    <span class="icon is-small is-left"><i class="fas fa-link"></i></span>
+                                <div class="field has-addons mb-0">
+                                    <div class="control has-icons-left is-expanded">
+                                        <input class="input"
+                                               type="url"
+                                               id="newLink"
+                                               placeholder="https://amazon.com"
+                                               name="link"
+                                               aria-describedby="linkHelp">
+                                        <span class="icon is-small is-left"><i class="fas fa-link"></i></span>
+                                    </div>
+                                    <div class="control">
+                                        <button class="button is-info is-light" type="button" id="fillFromLink" aria-label="Fill in details from the link" disabled>
+                                            <span class="icon is-small"><i class="fas fa-magic"></i></span>
+                                            <span class="is-hidden-mobile">Fill in details</span>
+                                            <span class="is-hidden-tablet">Fill</span>
+                                        </button>
+                                    </div>
                                 </div>
                                 <p class="help" id="linkHelp" aria-live="polite"></p>
                             </div>

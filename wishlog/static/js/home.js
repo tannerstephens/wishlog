@@ -28,7 +28,7 @@ const listEntryTemplate = Handlebars.compile(`
 
                     {{#if owner}}
                     <div class="item-edit">
-                    <div class="columns is-mobile is-variable is-2">
+                    <div class="columns is-mobile is-2">
                         <div class="column">
                             <div class="field">
                                 <label class="label" for="cost-{{ id }}">Cost</label>
@@ -481,23 +481,32 @@ window.onload = () => {
       : "No image";
   };
 
-  // Autofill: pasting a link fetches the page (through the server, since the
-  // browser can't read other sites) and fills in the blank fields from it.
-  // Fields the owner typed in themselves are never overwritten, but values
-  // filled in from an earlier link are replaced by the new link's.
-  const linkControl = document.getElementById("linkControl");
+  // Autofill: "Fill in details" fetches the linked page (through the server,
+  // since the browser can't read other sites) and fills in the blank fields
+  // from it. Fields the owner typed in themselves are never overwritten, but
+  // values filled in from an earlier link are replaced by the new link's.
+  const fillButton = document.getElementById("fillFromLink");
   const linkHelp = document.getElementById("linkHelp");
   let autofilled = {};
   let imageAutofilled = false;
   let latestPreview = 0;
-  let lastPreviewedLink = "";
+  let previewing = false;
+
+  const setFillButtonState = () => {
+    fillButton.disabled = previewing || !newItemForm.link.value.trim();
+    fillButton.classList.toggle("is-loading", previewing);
+  };
+
+  const stopPreview = () => {
+    latestPreview++;
+    previewing = false;
+    setFillButtonState();
+  };
 
   const resetAutofill = () => {
-    latestPreview++;
+    stopPreview();
     autofilled = {};
     imageAutofilled = false;
-    lastPreviewedLink = "";
-    linkControl.classList.remove("is-loading");
     linkHelp.textContent = "";
   };
 
@@ -535,6 +544,8 @@ window.onload = () => {
     return true;
   };
 
+  const LOOKUP_FAILED = "Couldn't find details for this link.";
+
   const describeFilled = (filled) => {
     if (filled.length === 0) {
       return "";
@@ -547,13 +558,13 @@ window.onload = () => {
 
   const previewLink = () => {
     const link = newItemForm.link.value.trim();
-    if (!link || link === lastPreviewedLink) {
+    if (!link || previewing) {
       return;
     }
-    lastPreviewedLink = link;
     const thisPreview = ++latestPreview;
 
-    linkControl.classList.add("is-loading");
+    previewing = true;
+    setFillButtonState();
     linkHelp.textContent = "Looking up the details…";
 
     fetch("/api/link-preview", {
@@ -568,10 +579,10 @@ window.onload = () => {
         if (thisPreview !== latestPreview) {
           return;
         }
+        // Why a lookup failed (blocked, bot check, unreachable) is nothing
+        // the owner can act on, so every failure gets the same short note
         if (!data.success) {
-          linkHelp.textContent = data.message
-            ? `Couldn't fill in the details: ${data.message}.`
-            : "Couldn't fill in the details from that link.";
+          linkHelp.textContent = LOOKUP_FAILED;
           return;
         }
 
@@ -594,8 +605,7 @@ window.onload = () => {
         setState();
 
         if (found.length === 0) {
-          linkHelp.textContent =
-            "Couldn't find any details on that page. Fill them in below.";
+          linkHelp.textContent = LOOKUP_FAILED;
         } else if (filled.length === 0) {
           linkHelp.textContent = "Kept what you already entered.";
         } else {
@@ -609,29 +619,26 @@ window.onload = () => {
       })
       .catch(() => {
         if (thisPreview === latestPreview) {
-          linkHelp.textContent = "Couldn't reach the server to look up that link.";
+          linkHelp.textContent = LOOKUP_FAILED;
         }
       })
       .finally(() => {
         if (thisPreview === latestPreview) {
-          linkControl.classList.remove("is-loading");
+          previewing = false;
+          setFillButtonState();
         }
       });
   };
 
-  // Paste fires before the input's value updates, so wait a tick
-  newItemForm.link.addEventListener("paste", () => setTimeout(previewLink));
-  // Typed links are looked up once the field loses focus
-  newItemForm.link.addEventListener("change", previewLink);
+  fillButton.addEventListener("click", previewLink);
   newItemForm.link.addEventListener("input", () => {
     // Cleared link: cancel any lookup, but keep track of what was autofilled
-    // so a different link pasted next can still replace those values
+    // so a different link filled in next can still replace those values
     if (!newItemForm.link.value.trim()) {
-      latestPreview++;
-      lastPreviewedLink = "";
-      linkControl.classList.remove("is-loading");
+      stopPreview();
       linkHelp.textContent = "";
     }
+    setFillButtonState();
   });
   // An image the owner picks themselves is theirs to keep
   newItemForm.image.addEventListener("change", () => {

@@ -423,6 +423,22 @@ def normalize_url(url: str) -> str:
     return url
 
 
+# Titles of the bot-check, queue and "please wait" pages stores show instead
+# of the product. Their title must never be mistaken for the item's name.
+_INTERSTITIAL_TITLE = re.compile(
+    r"please wait|just a moment|one moment|checking your browser"
+    r"|attention required|access denied|are you (a )?(robot|human)|robot or human"
+    r"|verify(ing)? (that )?you are (a )?human|security check|captcha"
+    r"|pardon (our|the) interruption|request (unsuccessful|blocked)"
+    r"|you('ve| have) been blocked|too many requests|you are in (the )?queue",
+    re.IGNORECASE,
+)
+
+
+def is_interstitial(title: str | None) -> bool:
+    return bool(title) and _INTERSTITIAL_TITLE.search(title) is not None
+
+
 def _details_in_browser(url: str):
     """Title, price, image URL and final URL from a page loaded in a browser.
 
@@ -479,6 +495,13 @@ def preview(url: str) -> LinkPreview:
                         title, cost, image_url, final_url = (
                             b_title or title, b_cost, b_image_url, b_final_url
                         )
+
+    # Only a page with no product details at all is judged by its title, so
+    # a real product that happens to be called "Please Wait" still works
+    if cost is None and image_url is None and is_interstitial(title):
+        raise LinkPreviewError(
+            "The store showed a bot check page instead of the product"
+        )
 
     result = LinkPreview(title=title, cost=cost)
 
