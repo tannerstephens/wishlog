@@ -7,6 +7,11 @@ from uuid import uuid4
 from PIL import Image
 
 
+# Lossy WebP at this quality is about 5x smaller than PNG for product photos,
+# with no visible difference at card size. Alpha (the transparent padding) is kept.
+WEBP_QUALITY = 82
+
+
 class InvalidImageError(ValueError):
     pass
 
@@ -30,8 +35,10 @@ class ImageProcessor:
         in_w, in_h = input_image.size
         target_image.paste(input_image, ((800 - in_w) // 2, (600 - in_h) // 2))
 
-        filename = f"{uuid4()}.png"
-        target_image.save(self.image_directory / filename)
+        filename = f"{uuid4()}.webp"
+        target_image.save(
+            self.image_directory / filename, "WEBP", quality=WEBP_QUALITY, method=6
+        )
 
         return filename
 
