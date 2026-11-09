@@ -1,11 +1,9 @@
-FROM python:3.12 AS base
+# Dependencies are built in the full image (it has compilers) and copied into
+# the slim one. Both stages must use the same Debian release and Python build
+# so the copied virtualenv runs unchanged.
+FROM python:3.12-trixie AS python-deps
 
-ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
 ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONFAULTHANDLER=1
-
-FROM base AS python-deps
 
 
 RUN pip install pipenv
@@ -15,7 +13,12 @@ COPY Pipfile .
 COPY Pipfile.lock .
 RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
 
-FROM base AS runtime
+FROM python:3.12-slim-trixie AS runtime
+
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONFAULTHANDLER=1
 
 COPY --from=python-deps /.venv /.venv
 ENV PATH="/.venv/bin:$PATH"
